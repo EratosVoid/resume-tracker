@@ -1,0 +1,47 @@
+{
+  "name": "resume-tracker-ats",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --fix"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@heroui/react": "^2.7.10",
+    "@uploadthing/react": "^6.7.2",
+    "bcryptjs": "^2.4.3",
+    "clsx": "2.1.1",
+    "framer-motion": "11.13.1",
+    "jose": "^5.9.6",
+    "lucide-react": "^0.460.0",
+    "mongoose": "^8.8.5",
+    "next": "15.3.1",
+    "next-auth": "^4.24.11",
+    "next-themes": "0.4.6",
+    "pdf-parse": "^1.1.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-dropzone": "^14.2.12",
+    "react-hot-toast": "^2.4.1",
+    "uploadthing": "^6.13.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "22.15.3",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "@typescript-eslint/eslint-plugin": "8.31.1",
+    "@typescript-eslint/parser": "8.31.1",
+    "autoprefixer": "10.4.21",
+    "eslint": "9.25.1",
+    "eslint-config-next": "15.3.1",
+    "postcss": "8.5.3",
+    "tailwindcss": "3.4.16",
+    "typescript": "5.6.3"
+  }
+}
