@@ -187,7 +187,7 @@ export default function ResumeCreatePage() {
   // Render loading state during generation
   if (isGenerating) {
     return (
-      <div className="min-h-screen bg-default-50 flex items-center justify-center">
+      <div className="min-h-screen max-h-screen overflow-y-auto bg-default-50 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

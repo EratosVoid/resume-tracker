@@ -18,7 +18,7 @@ interface ModeSelectorProps {
 
 export default function ModeSelector({ onModeSelect }: ModeSelectorProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
+    <div className="min-h-screen max-h-screen overflow-y-auto bg-gradient-to-br from-primary/5 to-secondary/5">
       <div className="max-w-6xl mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

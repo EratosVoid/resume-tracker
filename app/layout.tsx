@@ -41,7 +41,7 @@ export default function RootLayout({
         )}
       >
         <Providers>
-          <div className="max-h-screen h-screen overflow-y-hidden bg-default-50 flex flex-col">
+          <div className="min-h-screen max-h-screen overflow-y-auto bg-default-50 flex flex-col">
             <div className="h-full w-full">{children}</div>
           </div>
         </Providers>
