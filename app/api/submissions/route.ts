@@ -4,7 +4,6 @@ import Job from "../../../lib/models/Job";
 import Submission from "../../../lib/models/Submission";
 import Applicant from "../../../lib/models/Applicant";
 import { geminiService } from "../../../lib/services/gemini";
-import { fileParserService } from "../../../lib/services/fileParser";
 import { z } from "zod";
 
 // Validation schema for submission

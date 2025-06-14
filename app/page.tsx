@@ -233,6 +233,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Quick Actions Bar */}
+      <section className="py-8 px-4 border-b border-default-200">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <div className="flex items-center text-default-600 text-sm">
+              <span>Already have an account?</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link href="/auth/login">
+                <Button
+                  variant="bordered"
+                  size="sm"
+                  className="min-w-24"
+                  startContent={<UserIcon className="h-4 w-4" />}
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <div className="text-default-300">|</div>
+              <div className="flex items-center gap-2">
+                <span className="text-default-600 text-sm">New here?</span>
+                <Link href="/auth/register?type=applicant">
+                  <Button
+                    color="primary"
+                    variant="flat"
+                    size="sm"
+                    className="min-w-24"
+                  >
+                    Job Seeker
+                  </Button>
+                </Link>
+                <Link href="/auth/register?type=hr">
+                  <Button
+                    color="secondary"
+                    variant="flat"
+                    size="sm"
+                    className="min-w-24"
+                  >
+                    Recruiter
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Features Section with Tabs */}
       <section className="py-20 px-4 bg-default-50">
         <div className="max-w-6xl mx-auto">

@@ -13,14 +13,25 @@ import {
   Tab,
   Chip,
   Spinner,
+  Divider,
 } from "@heroui/react";
 import { toast } from "react-hot-toast";
+import { motion } from "framer-motion";
 import {
   EyeIcon,
   EyeOffIcon,
   UserIcon,
   BuildingIcon,
   SparklesIcon,
+  BrainIcon,
+  ShieldCheckIcon,
+  ArrowLeftIcon,
+  MailIcon,
+  LockIcon,
+  UserPlusIcon,
+  TrendingUpIcon,
+  TargetIcon,
+  ZapIcon,
 } from "lucide-react";
 
 // Loading fallback component
@@ -80,7 +91,6 @@ function RegisterPageContent() {
       ...prev,
       role: type,
       company: type === "applicant" ? "" : prev.company,
-      password: type === "applicant" ? "" : prev.password,
     }));
   };
 
@@ -96,17 +106,16 @@ function RegisterPageContent() {
         role: userType,
       };
 
-      // Only include password for HR users
-      if (userType === "hr") {
-        if (!formData.password || formData.password.length < 6) {
-          toast.error(
-            "Password must be at least 6 characters for recruiter accounts"
-          );
-          setIsLoading(false);
-          return;
-        }
-        submitData.password = formData.password;
+      // Password is required for all users
+      if (!formData.password || formData.password.length < 6) {
+        toast.error("Password must be at least 6 characters");
+        setIsLoading(false);
+        return;
+      }
+      submitData.password = formData.password;
 
+      // Company name only required for HR users
+      if (userType === "hr") {
         if (!formData.company || formData.company.trim().length < 2) {
           toast.error("Company name is required for recruiter accounts");
           setIsLoading(false);
@@ -148,116 +157,250 @@ function RegisterPageContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-default-50">
-      <div className="max-w-md w-full">
-        <Card>
-          <CardHeader className="flex flex-col items-center pb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <SparklesIcon className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold">Join Screener.ai</h1>
-            </div>
-            <p className="text-default-600 text-center">
-              Choose your account type to get started
-            </p>
-          </CardHeader>
-          <CardBody className="space-y-6">
-            {/* User Type Selection */}
-            <Tabs
-              selectedKey={userType}
-              onSelectionChange={(key) => handleUserTypeChange(key as string)}
-              className="w-full"
-              classNames={{
-                tabList:
-                  "grid w-full grid-cols-2 gap-0 relative rounded-lg bg-default-100 p-1",
-                cursor: "w-full bg-white shadow-sm",
-                tab: "w-full px-0 h-12",
-                tabContent:
-                  "group-data-[selected=true]:text-foreground text-default-600",
-              }}
-            >
-              <Tab
-                key="applicant"
-                title={
-                  <div className="flex items-center space-x-2">
-                    <UserIcon className="h-4 w-4" />
-                    <span className="font-medium">Job Seeker</span>
-                  </div>
-                }
-              />
-              <Tab
-                key="hr"
-                title={
-                  <div className="flex items-center space-x-2">
-                    <BuildingIcon className="h-4 w-4" />
-                    <span className="font-medium">Recruiter</span>
-                  </div>
-                }
-              />
-            </Tabs>
+    <div className="min-h-screen h-screen relative max-h-screen flex">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-default-50"></div>
 
-            {/* Account Type Info */}
-            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-              {userType === "applicant" ? (
-                <div>
-                  <h3 className="font-semibold text-primary mb-2">
-                    Job Seeker Account
-                  </h3>
-                  <ul className="text-sm text-default-600 space-y-1">
-                    <li>• Create AI-powered resumes</li>
-                    <li>• Get ATS compatibility scores</li>
-                    <li>• Track application history</li>
-                    <li>• Access resume improvement tips</li>
-                  </ul>
-                </div>
-              ) : (
-                <div>
-                  <h3 className="font-semibold text-secondary mb-2">
-                    Recruiter Account
-                  </h3>
-                  <ul className="text-sm text-default-600 space-y-1">
-                    <li>• Post job openings</li>
-                    <li>• AI-powered candidate matching</li>
-                    <li>• Resume analysis dashboard</li>
-                    <li>• Application tracking system</li>
-                  </ul>
-                </div>
-              )}
+      {/* Decorative Elements */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/4 w-48 h-48 bg-primary/5 rounded-full blur-2xl"></div>
+
+      <div className="relative min-h-screen flex w-full">
+        {/* Left Side - Branding */}
+        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 relative">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-md"
+          >
+            {/* Logo */}
+            <div className="flex items-center mb-8">
+              <div className="p-3 bg-primary/10 rounded-xl mr-4">
+                <BrainIcon className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Screener.ai
+                </h1>
+                <p className="text-sm text-default-600">
+                  AI-Powered Resume Intelligence
+                </p>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                type="text"
-                label="Full Name"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleChange("name")}
-                isRequired
-              />
+            {/* Value Proposition */}
+            <div className="space-y-6">
+              <h2 className="text-4xl font-bold text-default-900">
+                Start Your Journey!
+              </h2>
+              <p className="text-lg text-default-600">
+                Join thousands of professionals who've transformed their career
+                or hiring process with our AI-powered platform.
+              </p>
 
-              <Input
-                type="email"
-                label="Email Address"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange("email")}
-                isRequired
-              />
+              {/* Benefits by User Type */}
+              <div className="space-y-4">
+                {userType === "applicant" ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <ZapIcon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">
+                          5x Faster Resume Creation
+                        </h3>
+                        <p className="text-sm text-default-600">
+                          AI-powered resume building and optimization
+                        </p>
+                      </div>
+                    </div>
 
-              {userType === "hr" && (
-                <>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <TargetIcon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">95% ATS Success Rate</h3>
+                        <p className="text-sm text-default-600">
+                          Instant scoring with detailed improvement tips
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-secondary/10 rounded-lg">
+                        <TrendingUpIcon className="h-5 w-5 text-secondary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">80% Faster Screening</h3>
+                        <p className="text-sm text-default-600">
+                          Reduce screening time with automated analysis
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-secondary/10 rounded-lg">
+                        <TargetIcon className="h-5 w-5 text-secondary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">3x Better Matches</h3>
+                        <p className="text-sm text-default-600">
+                          AI-powered candidate matching and scoring
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="flex items-center gap-4 pt-4">
+                <Chip color="primary" variant="flat" size="sm">
+                  50K+ Users
+                </Chip>
+                <Chip color="secondary" variant="flat" size="sm">
+                  Enterprise Ready
+                </Chip>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Right Side - Registration Form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="max-w-md w-full"
+          >
+            {/* Back to Home */}
+            <div className="mb-6">
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-default-600 hover:text-primary transition-colors"
+              >
+                <ArrowLeftIcon className="h-4 w-4" />
+                <span>Back to Home</span>
+              </Link>
+            </div>
+
+            <Card className="border border-default-200 shadow-xl backdrop-blur-sm bg-background/80">
+              <CardHeader className="flex flex-col items-center pb-6 pt-8">
+                <div className="p-3 bg-primary/10 rounded-full mb-4">
+                  <UserPlusIcon className="h-6 w-6 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold mb-4">Join Screener.ai</h1>
+                <p className="text-default-600 text-center">
+                  Choose your account type to get started
+                </p>
+              </CardHeader>
+
+              <CardBody className="px-8 pb-8 space-y-6">
+                {/* User Type Selection */}
+                <Tabs
+                  selectedKey={userType}
+                  onSelectionChange={(key) =>
+                    handleUserTypeChange(key as string)
+                  }
+                  className="w-full"
+                  classNames={{
+                    tabList:
+                      "grid w-full grid-cols-2 gap-0 relative rounded-lg bg-default-100 p-1",
+                    cursor: "w-full bg-white shadow-sm",
+                    tab: "w-full px-0 h-12",
+                    tabContent:
+                      "group-data-[selected=true]:text-foreground text-default-600",
+                  }}
+                >
+                  <Tab
+                    key="applicant"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <UserIcon className="h-4 w-4" />
+                        <span className="font-medium">Job Seeker</span>
+                      </div>
+                    }
+                  />
+                  <Tab
+                    key="hr"
+                    title={
+                      <div className="flex items-center space-x-2">
+                        <BuildingIcon className="h-4 w-4" />
+                        <span className="font-medium">Recruiter</span>
+                      </div>
+                    }
+                  />
+                </Tabs>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <Input
                     type="text"
-                    label="Company Name"
-                    placeholder="Enter your company name"
-                    value={formData.company}
-                    onChange={handleChange("company")}
+                    label="Full Name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleChange("name")}
+                    startContent={
+                      <UserIcon className="h-4 w-4 text-default-400" />
+                    }
+                    classNames={{
+                      input: "text-base",
+                      inputWrapper:
+                        "border border-default-200 hover:border-primary/50 focus-within:border-primary",
+                    }}
                     isRequired
                   />
+
+                  <Input
+                    type="email"
+                    label="Email Address"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange("email")}
+                    startContent={
+                      <MailIcon className="h-4 w-4 text-default-400" />
+                    }
+                    classNames={{
+                      input: "text-base",
+                      inputWrapper:
+                        "border border-default-200 hover:border-primary/50 focus-within:border-primary",
+                    }}
+                    isRequired
+                  />
+
+                  {userType === "hr" && (
+                    <Input
+                      type="text"
+                      label="Company Name"
+                      placeholder="Enter your company name"
+                      value={formData.company}
+                      onChange={handleChange("company")}
+                      startContent={
+                        <BuildingIcon className="h-4 w-4 text-default-400" />
+                      }
+                      classNames={{
+                        input: "text-base",
+                        inputWrapper:
+                          "border border-default-200 hover:border-primary/50 focus-within:border-primary",
+                      }}
+                      isRequired
+                    />
+                  )}
+
                   <Input
                     label="Password"
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={handleChange("password")}
+                    startContent={
+                      <LockIcon className="h-4 w-4 text-default-400" />
+                    }
                     endContent={
                       <button
                         className="focus:outline-none"
@@ -265,68 +408,61 @@ function RegisterPageContent() {
                         onClick={toggleVisibility}
                       >
                         {isVisible ? (
-                          <EyeOffIcon className="h-4 w-4 text-default-400" />
+                          <EyeOffIcon className="h-4 w-4 text-default-400 hover:text-primary transition-colors" />
                         ) : (
-                          <EyeIcon className="h-4 w-4 text-default-400" />
+                          <EyeIcon className="h-4 w-4 text-default-400 hover:text-primary transition-colors" />
                         )}
                       </button>
                     }
                     type={isVisible ? "text" : "password"}
+                    classNames={{
+                      input: "text-base",
+                      inputWrapper:
+                        "border border-default-200 hover:border-primary/50 focus-within:border-primary",
+                    }}
                     isRequired
                   />
-                </>
-              )}
 
-              <Button
-                type="submit"
-                color={userType === "hr" ? "secondary" : "primary"}
-                size="lg"
-                className="w-full"
-                isLoading={isLoading}
-              >
-                {userType === "hr"
-                  ? "Create Recruiter Account"
-                  : "Create Job Seeker Account"}
-              </Button>
-            </form>
-
-            <div className="text-center">
-              <p className="text-default-600 text-sm">
-                Already have an account?{" "}
-                <Link href="/auth/login" className="text-primary font-medium">
-                  Sign in
-                </Link>
-              </p>
-            </div>
-
-            {/* Quick Access Links */}
-            <div className="pt-4 border-t border-default-200">
-              <p className="text-xs text-default-500 text-center mb-3">
-                Or try without an account:
-              </p>
-              <div className="flex gap-2">
-                <Link href="/resume/upload" className="flex-1">
                   <Button
-                    variant="bordered"
-                    size="sm"
-                    className="w-full text-xs"
+                    type="submit"
+                    color={userType === "hr" ? "secondary" : "primary"}
+                    size="lg"
+                    className="w-full font-semibold"
+                    isLoading={isLoading}
                   >
-                    Upload & Score Resume
+                    {isLoading
+                      ? "Creating Account..."
+                      : userType === "hr"
+                      ? "Create Recruiter Account"
+                      : "Create Job Seeker Account"}
                   </Button>
-                </Link>
-                <Link href="/jobs" className="flex-1">
-                  <Button
-                    variant="bordered"
-                    size="sm"
-                    className="w-full text-xs"
-                  >
-                    Browse Jobs
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
+                </form>
+
+                <div className="text-center">
+                  <p className="text-default-600 text-sm">
+                    Already have an account?{" "}
+                    <Link
+                      href="/auth/login"
+                      className="text-primary font-medium"
+                    >
+                      Sign in
+                    </Link>
+                  </p>
+                </div>
+
+                <Divider className="my-6" />
+
+                {/* Security Notice */}
+                <div className="p-3 bg-success/5 rounded-lg border border-success/20">
+                  <div className="flex items-center justify-center gap-2 text-sm text-success-700">
+                    <ShieldCheckIcon className="h-4 w-4" />
+                    <span>Your data is encrypted and secure</span>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
