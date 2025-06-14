@@ -33,6 +33,7 @@ import {
   TargetIcon,
   ZapIcon,
 } from "lucide-react";
+import { Logo } from "@/components/icons";
 
 // Loading fallback component
 function RegisterPageSkeleton() {
@@ -177,8 +178,8 @@ function RegisterPageContent() {
           >
             {/* Logo */}
             <div className="flex items-center mb-8">
-              <div className="p-3 bg-primary/10 rounded-xl mr-4">
-                <BrainIcon className="h-8 w-8 text-primary" />
+              <div className="bg-primary/10 rounded-xl mr-4">
+                <Logo size={42} className="rounded-xl" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

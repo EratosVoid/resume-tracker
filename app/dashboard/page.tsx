@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface DashboardStats {
   totalJobs: number;
@@ -38,7 +39,8 @@ interface RecentJob {
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalJobs: 0,
     activeJobs: 0,
@@ -49,8 +51,23 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === "loading") return;
+
+    console.log("session", session);
+    // Redirect applicants to their specific dashboard
+    if (session?.user?.role === "applicant") {
+      router.push("/applicant");
+      return;
+    }
+
+    // Only show this dashboard for HR users
+    if (!session?.user || session.user.role !== "hr") {
+      router.push("/auth/login");
+      return;
+    }
+
     fetchDashboardData();
-  }, []);
+  }, [session, status, router]);
 
   const fetchDashboardData = async () => {
     try {

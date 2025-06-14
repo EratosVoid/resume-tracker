@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 
 import { IconSvgProps } from "@/types";
 
@@ -8,47 +9,14 @@ export const Logo: React.FC<IconSvgProps> = ({
   height,
   ...props
 }) => (
-  <svg
-    fill="none"
-    height={size || height}
-    viewBox="0 0 32 32"
-    width={size || width}
-    {...props}
-  >
-    {/* Magnifying glass lens */}
-    <circle
-      cx="13"
-      cy="11"
-      r="8"
-      stroke="currentColor"
-      strokeWidth="2"
-      fill="none"
-    />
-
-    {/* AI screening dots pattern inside lens */}
-    <circle cx="10" cy="8" r="1.5" fill="currentColor" opacity="0.8" />
-    <circle cx="14" cy="8" r="1.5" fill="currentColor" opacity="0.6" />
-    <circle cx="16" cy="11" r="1.5" fill="currentColor" opacity="0.9" />
-    <circle cx="14" cy="14" r="1.5" fill="currentColor" opacity="0.7" />
-    <circle cx="10" cy="14" r="1.5" fill="currentColor" opacity="0.8" />
-    <circle cx="8" cy="11" r="1.5" fill="currentColor" opacity="0.5" />
-
-    {/* Magnifying glass handle */}
-    <path
-      d="M21 21L26 26"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
-
-    {/* AI sparkle accent */}
-    <path d="M25 8L26 6L27 8L26 10L25 8Z" fill="currentColor" opacity="0.7" />
-    <path
-      d="M23 5L23.5 4L24 5L23.5 6L23 5Z"
-      fill="currentColor"
-      opacity="0.5"
-    />
-  </svg>
+  <Image
+    src="/logo.png"
+    alt="Screener.ai Logo"
+    width={Number(size || width || 36)}
+    height={Number(size || height || 36)}
+    className="object-contain"
+    {...(props as any)}
+  />
 );
 
 export const DiscordIcon: React.FC<IconSvgProps> = ({

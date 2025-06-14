@@ -33,6 +33,7 @@ import {
   AwardIcon,
   RocketIcon,
 } from "lucide-react";
+import { Logo } from "@/components/icons";
 
 export default function HomePage() {
   const applicantFeatures = [
@@ -136,14 +137,27 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
+            {/* Logo and Brand */}
+            <div className="flex justify-center items-center mb-8">
+              <div className="bg-primary/10 dark:bg-primary/20 rounded-2xl p-3 mr-4">
+                <Logo size={64} className="rounded-xl" />
+              </div>
+              <div className="text-left">
+                <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Screener.ai
+                </h1>
+                <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
+                  AI-Powered Resume Intelligence
+                </p>
+              </div>
+            </div>
+
             <div className="flex justify-center mb-6">
               <Chip color="primary" variant="flat" size="lg">
                 Powered by Google Gemini AI
               </Chip>
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Screener.ai
-            </h1>
+
             <p className="text-xl md:text-2xl text-default-600 mb-8 max-w-4xl mx-auto">
               The AI-powered platform that empowers job seekers to create
               winning resumes and helps recruiters find the perfect candidates

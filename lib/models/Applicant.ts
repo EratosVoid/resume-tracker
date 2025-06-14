@@ -19,8 +19,7 @@ export interface IResumeVersion {
 }
 
 export interface IApplicant extends Document {
-  name: string;
-  email: string;
+  userId: mongoose.Types.ObjectId; // Reference to User model
   phone?: string;
   resumeVersions: IResumeVersion[];
   jobPreferences?: string[];
@@ -49,16 +48,11 @@ const ResumeVersionSchema = new Schema<IResumeVersion>({
 
 const ApplicantSchema = new Schema<IApplicant>(
   {
-    name: { type: String, required: true, trim: true },
-    email: {
-      type: String,
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      unique: true,
-      lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email",
-      ],
+      unique: true, // One applicant profile per user
     },
     phone: { type: String, trim: true },
     resumeVersions: [ResumeVersionSchema],
@@ -71,7 +65,7 @@ const ApplicantSchema = new Schema<IApplicant>(
 );
 
 // Create indexes for better performance
-ApplicantSchema.index({ email: 1 });
+ApplicantSchema.index({ userId: 1 });
 ApplicantSchema.index({ "resumeVersions.atsScores.jobId": 1 });
 ApplicantSchema.index({ createdAt: -1 });
 

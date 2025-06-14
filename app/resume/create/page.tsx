@@ -35,18 +35,25 @@ interface FormData {
   achievements: any[];
 }
 
-interface ResumeData {
+interface GeneratedResumeResponse {
   success: boolean;
+  resume: {
+    personalInfo: any;
+    summary: string;
+    experience: any[];
+    education: any[];
+    skills: string[];
+    projects: any[];
+    achievements: any[];
+  };
   atsScore: number;
-  content: string;
+  downloadUrl?: string;
   metadata: {
+    generatedAt: string;
+    mode: string;
     validated: number;
     totalSections: number;
-    skillsCount: number;
-    experienceYears: string;
-    completeness: number;
   };
-  recommendations: string[];
 }
 
 type ViewState = "mode-select" | "chat" | "form" | "generated";
@@ -57,9 +64,8 @@ export default function ResumeCreatePage() {
     null
   );
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedResume, setGeneratedResume] = useState<ResumeData | null>(
-    null
-  );
+  const [generatedResume, setGeneratedResume] =
+    useState<GeneratedResumeResponse | null>(null);
 
   // Convert chat data to FormData structure
   const convertChatDataToFormData = (

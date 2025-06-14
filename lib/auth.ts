@@ -27,6 +27,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid credentials");
         }
 
+        // Check if user has a password (applicants might not have one initially)
+        if (!user.password) {
+          throw new Error(
+            "Account exists but no password set. Please contact support."
+          );
+        }
+
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password

@@ -25,6 +25,7 @@ import {
   MailIcon,
   LockIcon,
 } from "lucide-react";
+import { Logo } from "@/components/icons";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,8 +50,22 @@ export default function LoginPage() {
       if (result?.error) {
         toast.error("Invalid credentials");
       } else {
+        // Get the session to check user role
+        const session = await getSession();
+
         toast.success("Logged in successfully");
-        router.push("/dashboard");
+
+        console.log("session", session?.user);
+
+        // Redirect based on role
+        if (session?.user?.role === "hr") {
+          router.push("/dashboard");
+        } else if (session?.user?.role === "applicant") {
+          console.log("applicant");
+          router.push("/applicant");
+        } else {
+          router.push("/dashboard"); // Fallback
+        }
       }
     } catch (error) {
       toast.error("An error occurred during login");
@@ -80,8 +95,8 @@ export default function LoginPage() {
           >
             {/* Logo */}
             <div className="flex items-center mb-8">
-              <div className="p-3 bg-primary/10 rounded-xl mr-4">
-                <BrainIcon className="h-8 w-8 text-primary" />
+              <div className="bg-primary/10 rounded-xl mr-4">
+                <Logo size={42} className="rounded-xl" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

@@ -4,8 +4,8 @@ import bcrypt from "bcryptjs";
 export interface IUser extends Document {
   name: string;
   email: string;
-  password: string;
-  role: "hr" | "recruiter" | "admin";
+  password?: string; // Optional for applicants who might register without password initially
+  role: "hr" | "admin" | "applicant";
   company?: string;
   department?: string;
   isActive: boolean;
@@ -35,13 +35,16 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: true,
+      required: function (this: IUser) {
+        // Password is required for HR/admin, optional for applicants
+        return this.role !== "applicant";
+      },
       minlength: 6,
     },
     role: {
       type: String,
-      enum: ["hr", "recruiter", "admin"],
-      default: "recruiter",
+      enum: ["hr", "admin", "applicant"],
+      default: "applicant",
     },
     company: { type: String, trim: true },
     department: { type: String, trim: true },
@@ -63,8 +66,8 @@ UserSchema.index({ isActive: 1 });
 
 // Pre-save middleware to hash password
 UserSchema.pre("save", async function (next) {
-  // Only hash the password if it has been modified (or is new)
-  if (!this.isModified("password")) return next();
+  // Only hash the password if it exists and has been modified (or is new)
+  if (!this.password || !this.isModified("password")) return next();
 
   try {
     // Hash password with cost of 12
@@ -80,6 +83,7 @@ UserSchema.pre("save", async function (next) {
 UserSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
+  if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

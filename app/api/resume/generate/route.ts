@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { connectDB } from "@/lib/database";
+import User from "@/lib/models/User";
+import Applicant from "@/lib/models/Applicant";
 
 interface PersonalInfo {
   fullName: string;
@@ -34,6 +39,7 @@ interface RequestBody {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
     const body: RequestBody = await request.json();
     const { data, mode, collectedData } = body;
 
@@ -69,6 +75,50 @@ export async function POST(request: NextRequest) {
 
     // Calculate ATS score based on completeness and validation
     const atsScore = calculateATSScore(data);
+
+    // Save resume version to applicant profile if user is logged in
+    if (session?.user?.email) {
+      try {
+        await connectDB();
+
+        // Find user first
+        const user = await User.findOne({
+          email: session.user.email.toLowerCase(),
+        });
+
+        if (user) {
+          // Find or create applicant profile
+          let applicant = await Applicant.findOne({
+            userId: user._id,
+          });
+
+          if (!applicant) {
+            applicant = await Applicant.create({
+              userId: user._id,
+              isAnonymous: false,
+              resumeVersions: [],
+            });
+          }
+
+          // Create new resume version
+          const newResumeVersion = {
+            parsedText: JSON.stringify(resumeContent),
+            fileName: `${data.personalInfo.fullName} - ${data.targetRole}`,
+            fileType: "generated",
+            atsScores: [],
+            createdAt: new Date(),
+          };
+
+          applicant.resumeVersions.push(newResumeVersion);
+          await applicant.save();
+
+          console.log("Resume version saved to applicant profile");
+        }
+      } catch (error) {
+        console.error("Error saving resume version:", error);
+        // Don't fail the request if saving fails
+      }
+    }
 
     const response = {
       success: true,

@@ -27,16 +27,23 @@ import {
 
 interface ResumeData {
   success: boolean;
+  resume: {
+    personalInfo: any;
+    summary: string;
+    experience: any[];
+    education: any[];
+    skills: string[];
+    projects: any[];
+    achievements: any[];
+  };
   atsScore: number;
-  content: string;
+  downloadUrl?: string;
   metadata: {
+    generatedAt: string;
+    mode: string;
     validated: number;
     totalSections: number;
-    skillsCount: number;
-    experienceYears: string;
-    completeness: number;
   };
-  recommendations: string[];
 }
 
 interface ResumeGeneratedViewProps {
@@ -139,10 +146,124 @@ export default function ResumeGeneratedView({
                 </div>
               </CardHeader>
               <CardBody>
-                <div className="bg-white dark:bg-gray-900 border rounded-lg p-8 min-h-[800px] shadow-sm">
-                  <div className="whitespace-pre-wrap font-mono text-sm">
-                    {resumeData.content || "Resume content will appear here..."}
+                <div className="bg-white dark:bg-gray-900 border rounded-lg p-8 min-h-[800px] shadow-sm space-y-6">
+                  {/* Personal Info */}
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">
+                      {resumeData.resume.personalInfo.fullName}
+                    </h2>
+                    <div className="flex flex-wrap gap-4 text-sm text-default-600 mb-4">
+                      {resumeData.resume.personalInfo.email && (
+                        <span>{resumeData.resume.personalInfo.email}</span>
+                      )}
+                      {resumeData.resume.personalInfo.phone && (
+                        <span>{resumeData.resume.personalInfo.phone}</span>
+                      )}
+                      {resumeData.resume.personalInfo.location && (
+                        <span>{resumeData.resume.personalInfo.location}</span>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Summary */}
+                  {resumeData.resume.summary && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Professional Summary
+                      </h3>
+                      <p className="text-default-700">
+                        {resumeData.resume.summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {resumeData.resume.skills?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Skills</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {resumeData.resume.skills.map((skill, index) => (
+                          <Chip key={index} variant="flat" size="sm">
+                            {skill}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Experience */}
+                  {resumeData.resume.experience?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Experience</h3>
+                      <div className="space-y-3">
+                        {resumeData.resume.experience.map((exp, index) => (
+                          <div
+                            key={index}
+                            className="border-l-2 border-primary/20 pl-4"
+                          >
+                            <p className="text-default-700">
+                              {typeof exp === "string"
+                                ? exp
+                                : exp.description || "Experience details"}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Education */}
+                  {resumeData.resume.education?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Education</h3>
+                      <div className="space-y-2">
+                        {resumeData.resume.education.map((edu, index) => (
+                          <p key={index} className="text-default-700">
+                            {typeof edu === "string"
+                              ? edu
+                              : edu.description || "Education details"}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Projects */}
+                  {resumeData.resume.projects?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Projects</h3>
+                      <div className="space-y-2">
+                        {resumeData.resume.projects.map((project, index) => (
+                          <p key={index} className="text-default-700">
+                            {typeof project === "string"
+                              ? project
+                              : project.description || "Project details"}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Achievements */}
+                  {resumeData.resume.achievements?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Achievements
+                      </h3>
+                      <div className="space-y-2">
+                        {resumeData.resume.achievements.map(
+                          (achievement, index) => (
+                            <p key={index} className="text-default-700">
+                              {typeof achievement === "string"
+                                ? achievement
+                                : achievement.description ||
+                                  "Achievement details"}
+                            </p>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardBody>
             </Card>
@@ -224,19 +345,21 @@ export default function ResumeGeneratedView({
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Skills Listed</span>
                       <span className="font-semibold">
-                        {resumeData.metadata.skillsCount}
+                        {resumeData.resume.skills?.length || 0}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Experience Level</span>
-                      <span className="font-semibold">
-                        {resumeData.metadata.experienceYears}
+                      <span className="text-sm">Creation Mode</span>
+                      <span className="font-semibold capitalize">
+                        {resumeData.metadata.mode}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Completeness</span>
+                      <span className="text-sm">Generated</span>
                       <span className="font-semibold">
-                        {resumeData.metadata.completeness}%
+                        {new Date(
+                          resumeData.metadata.generatedAt
+                        ).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -244,7 +367,7 @@ export default function ResumeGeneratedView({
               </Card>
             </motion.div>
 
-            {/* AI Recommendations */}
+            {/* Next Steps */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -254,31 +377,27 @@ export default function ResumeGeneratedView({
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <BrainIcon className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">
-                      AI Recommendations
-                    </h3>
+                    <h3 className="text-lg font-semibold">Next Steps</h3>
                   </div>
                 </CardHeader>
                 <CardBody>
                   <div className="space-y-3">
-                    {resumeData.recommendations?.map(
-                      (recommendation, index) => (
-                        <div
-                          key={index}
-                          className="p-3 bg-warning/5 border border-warning/20 rounded-lg"
-                        >
-                          <div className="flex items-start gap-2">
-                            <SparklesIcon className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
-                            <p className="text-sm">{recommendation}</p>
-                          </div>
-                        </div>
-                      )
-                    ) || (
-                      <p className="text-sm text-default-600">
-                        Great job! Your resume looks excellent with no major
-                        improvements needed.
-                      </p>
-                    )}
+                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <SparklesIcon className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <p className="text-sm">
+                          Download your resume and start applying to jobs
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <UserIcon className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
+                        <p className="text-sm">
+                          Create an account to save multiple resume versions
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardBody>
               </Card>
@@ -311,13 +430,13 @@ export default function ResumeGeneratedView({
 
                   <Divider />
 
-                  <Link href="/auth/register" className="w-full">
+                  <Link href="/applicant" className="w-full">
                     <Button
                       variant="bordered"
                       className="w-full"
                       startContent={<UserIcon className="h-5 w-5" />}
                     >
-                      Save & Create Account
+                      View My Dashboard
                     </Button>
                   </Link>
 

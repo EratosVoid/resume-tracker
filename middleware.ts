@@ -13,6 +13,16 @@ export default withAuth(
       req.nextUrl.pathname.startsWith("/dashboard") &&
       req.nextauth.token?.role !== "hr"
     ) {
+      console.log("redirecting to login - not HR");
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+
+    // Check if user is trying to access applicant-only routes
+    if (
+      req.nextUrl.pathname.startsWith("/applicant") &&
+      req.nextauth.token?.role !== "applicant"
+    ) {
+      console.log("redirecting to login - not applicant");
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
 
@@ -26,12 +36,17 @@ export default withAuth(
           return true;
         }
 
-        // Require authentication for dashboard
-        if (req.nextUrl.pathname.startsWith("/dashboard")) {
-          return !!token && token.role === "hr";
+        // Require authentication for applicant routes
+        if (req.nextUrl.pathname.startsWith("/applicant")) {
+          return !!token;
         }
 
-        // Allow access to all other pages
+        // Require authentication for dashboard
+        if (req.nextUrl.pathname.startsWith("/dashboard")) {
+          return !!token;
+        }
+
+        // Allow access to all other pages (jobs, resume, etc. - they'll show appropriate UI based on auth status)
         return true;
       },
     },
@@ -39,5 +54,11 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/auth/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/auth/:path*",
+    "/applicant/:path*",
+    "/jobs/:path*",
+    "/resume/:path*",
+  ],
 };
