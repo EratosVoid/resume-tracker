@@ -442,58 +442,13 @@ export default function ResumeUploadPage() {
             <ModalBody className="space-y-6">
               {analysis && (
                 <>
-                  {/* File Information */}
-                  {fileInfo && (
-                    <Card>
-                      <CardBody className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <FileTextIcon className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium">
-                                {fileInfo.originalName}
-                              </h4>
-                              <p className="text-sm text-default-600">
-                                {(fileInfo.fileSize / 1024 / 1024).toFixed(2)}{" "}
-                                MB • Uploaded{" "}
-                                {new Date(fileInfo.uploadedAt).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="bordered"
-                            onPress={downloadFile}
-                            startContent={<UploadIcon className="h-4 w-4" />}
-                          >
-                            Download
-                          </Button>
-                        </div>
-                      </CardBody>
-                    </Card>
-                  )}
-
                   {/* Overall Score */}
-                  <Card>
-                    <CardBody className="text-center p-6">
-                      <div className="text-4xl font-bold text-primary mb-2">
-                        {analysis.overallScore}%
-                      </div>
-                      <Chip
-                        color={getScoreColor(analysis.overallScore)}
-                        variant="flat"
-                        size="lg"
-                      >
-                        {getScoreLabel(analysis.overallScore)}
-                      </Chip>
-                      <p className="text-default-600 mt-2">
-                        Overall ATS Compatibility Score
-                      </p>
-                    </CardBody>
-                  </Card>
-
+                  <div className="flex justify-between items-center mb-6 w-full">
+                    <h3 className="text-2xl font-semibold">Overall ATS Score</h3>
+                    <div className="text-4xl font-bold text-primary">
+                      {analysis.overallScore}
+                    </div>
+                  </div>
                   {/* Extracted Information */}
                   {analysis.extractedInfo && (
                     <div>

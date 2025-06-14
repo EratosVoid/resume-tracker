@@ -282,10 +282,22 @@ Return ONLY the JSON object with no additional text or formatting.
 
     // Try to parse JSON from the response
     try {
-      // Remove any markdown formatting if present
       const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
-      return JSON.parse(cleanedText);
-    } catch (parseError) {
+      const parsedResult = JSON.parse(cleanedText);
+
+      // Calculate overall score as average of section scores
+      const sectionScores = Object.values(parsedResult.sections).map(
+        (section: any) => section.score
+      );
+      const overallScore = Math.round(
+        sectionScores.reduce((a, b) => a + b, 0) / sectionScores.length
+      );
+
+      return {
+        ...parsedResult,
+        overallScore
+      };
+    }catch (parseError) {
       console.error("Failed to parse AI response as JSON:", parseError);
       // Return a fallback structure
       return {
