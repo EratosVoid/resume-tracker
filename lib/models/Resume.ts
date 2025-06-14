@@ -29,7 +29,7 @@ export interface IResume extends Document {
 }
 
 const ATSScoreSchema = new Schema<IATSScore>({
-  jobId: { type: Schema.Types.ObjectId, ref: "Job", required: true },
+  jobId: { type: Schema.Types.ObjectId, ref: "Job" },
   score: { type: Number, required: true, min: 0, max: 100 },
   keywordsMatched: [{ type: String }],
   skillsMatched: [{ type: String }],
@@ -66,23 +66,30 @@ const ResumeSchema = new Schema<IResume>(
 
 // Create indexes for better performance
 ResumeSchema.index({ userId: 1 });
-ResumeSchema.index({ "resumeVersions.atsScores.jobId": 1 });
+// ResumeSchema.index({ "resumeVersions.atsScores.jobId": 1 });
 ResumeSchema.index({ createdAt: -1 });
 
-// Post-save middleware to update user's resumes array
+// Post-save middleware to update user's resumes array and scores
 ResumeSchema.post("save", async function () {
-  if (this.isNew && this.userId) {
+  if (this.userId) {
     try {
-      await mongoose
-        .model("User")
-        .findByIdAndUpdate(
+      const User = mongoose.model("User");
+
+      // Update user's resumes array if this is a new resume
+      if (this.isNew) {
+        await User.findByIdAndUpdate(
           this.userId,
           { $addToSet: { resumes: this._id } },
           { new: true }
         );
-      console.log(`Added resume ${this._id} to user ${this.userId} timeline`);
+        console.log(`Added resume ${this._id} to user ${this.userId} timeline`);
+      }
+
+      // Always update user scores when resume is saved (new or modified)
+      await (User as any).updateUserScores(this.userId.toString());
+      console.log(`Updated scores for user ${this.userId} after resume save`);
     } catch (error) {
-      console.error("Error updating user resumes timeline:", error);
+      console.error("Error updating user resumes timeline and scores:", error);
     }
   }
 });

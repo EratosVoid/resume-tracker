@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/database";
 import User from "@/lib/models/User";
+import Job from "@/lib/models/Job";
 import Resume from "@/lib/models/Resume";
 import Submission from "@/lib/models/Submission";
-import Job from "@/lib/models/Job";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +15,12 @@ export async function GET(request: NextRequest) {
     }
 
     await connectDB();
+
+    // Ensure all models are registered
+    User;
+    Job;
+    Resume;
+    Submission;
 
     // Find user first
     const user = await User.findOne({
@@ -30,7 +36,7 @@ export async function GET(request: NextRequest) {
       userId: user._id,
     }).populate({
       path: "resumeVersions.atsScores.jobId",
-      model: "Job",
+      model: Job,
       select: "title",
     });
 
@@ -51,7 +57,11 @@ export async function GET(request: NextRequest) {
         { applicantEmail: session.user.email?.toLowerCase() },
       ],
     })
-      .populate("jobId", "title description")
+      .populate({
+        path: "jobId",
+        model: Job,
+        select: "title description",
+      })
       .sort({ submittedAt: -1 });
 
     // Calculate stats
@@ -144,6 +154,12 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
+    // Ensure all models are registered
+    User;
+    Job;
+    Resume;
+    Submission;
+
     // Find user first
     const user = await User.findOne({
       email: session.user.email?.toLowerCase(),
@@ -166,26 +182,34 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create new resume version
-    const newResumeVersion = {
+    // Create new resume version with atsScore
+    const newResumeVersion: any = {
       parsedText: resumeData.parsedText || JSON.stringify(resumeData),
       rawFileURL: resumeData.rawFileURL,
       fileName: resumeData.fileName,
       fileType: resumeData.fileType,
-      atsScores:
-        jobId && atsScore
-          ? [
-              {
-                jobId: jobId,
-                score: atsScore,
-                keywordsMatched: [],
-                skillsMatched: [],
-                createdAt: new Date(),
-              },
-            ]
-          : [],
+      atsScores: [],
       createdAt: new Date(),
     };
+
+    // Add atsScore entry if score is provided
+    if (atsScore && typeof atsScore === "number") {
+      const atsScoreEntry: any = {
+        score: atsScore,
+        keywordsMatched: resumeData.keywordsMatched || [],
+        skillsMatched: resumeData.skillsMatched || [],
+        experienceYears: resumeData.experienceYears || 0,
+        createdAt: new Date(),
+      };
+
+      // If jobId is provided, include it (job-specific analysis)
+      if (jobId) {
+        atsScoreEntry.jobId = jobId;
+      }
+      // If no jobId, this is a general resume analysis (still track the score)
+
+      newResumeVersion.atsScores.push(atsScoreEntry);
+    }
 
     resume.resumeVersions.push(newResumeVersion);
     await resume.save();

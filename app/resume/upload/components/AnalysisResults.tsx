@@ -10,6 +10,9 @@ import {
 } from "@heroui/react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import {
   CheckCircleIcon,
   AlertCircleIcon,
@@ -18,6 +21,8 @@ import {
   TrendingUpIcon,
   FileTextIcon,
   RefreshCwIcon,
+  SaveIcon,
+  LoaderIcon,
 } from "lucide-react";
 
 interface AnalysisResult {
@@ -58,6 +63,64 @@ export default function AnalysisResults({
   fileName,
   onStartOver,
 }: AnalysisResultsProps) {
+  const { data: session } = useSession();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveAnalysis = async () => {
+    if (!session?.user) {
+      toast.error("Please log in to save your analysis");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/applicant/dashboard", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resumeData: {
+            parsedText: JSON.stringify({
+              ...analysis.extractedInfo,
+              tone: analysis.tone,
+              sections: analysis.sections,
+              improvements: analysis.improvements,
+              matchedSkills: analysis.matchedSkills,
+              missingSkills: analysis.missingSkills,
+            }),
+            fileName: fileName,
+            fileType: "analyzed",
+            keywordsMatched: analysis.matchedSkills || [],
+            skillsMatched: analysis.matchedSkills || [],
+            experienceYears: analysis.extractedInfo.experience
+              ? parseInt(
+                  analysis.extractedInfo.experience.match(/\d+/)?.[0] || "0"
+                )
+              : 0,
+          },
+          atsScore: analysis.overallScore,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success(
+          "✅ Analysis saved to your timeline! You can view it anytime in your resume timeline.",
+          {
+            duration: 4000,
+          }
+        );
+      } else {
+        throw new Error("Failed to save analysis");
+      }
+    } catch (error) {
+      console.error("Error saving analysis:", error);
+      toast.error("Failed to save analysis. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return "success";
     if (score >= 60) return "warning";
@@ -180,7 +243,9 @@ export default function AnalysisResults({
           </CardHeader>
           <CardBody>
             <div className="flex flex-col gap-2">
-              <div className="font-medium text-lg">{analysis.tone.category}</div>
+              <div className="font-medium text-lg">
+                {analysis.tone.category}
+              </div>
               <p className="text-default-600">{analysis.tone.reasoning}</p>
             </div>
           </CardBody>
@@ -300,35 +365,102 @@ export default function AnalysisResults({
       <motion.div variants={itemVariants}>
         <Card>
           <CardBody className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/resume/create" className="flex-1">
+            {/* Login Status Indicator */}
+            {session?.user && (
+              <div className="mb-4 p-3 bg-success/10 border border-success/20 rounded-lg">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircleIcon className="h-4 w-4 text-success" />
+                  <span className="text-success font-medium">
+                    Logged in as {session.user.name || session.user.email}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-4">
+              {/* Primary Action - Save Analysis (Most Prominent) */}
+              {session?.user ? (
                 <Button
                   color="primary"
                   size="lg"
-                  className="w-full font-semibold"
-                  startContent={<SparklesIcon className="h-5 w-5" />}
+                  className="w-full font-semibold bg-gradient-to-r from-primary to-secondary shadow-lg shadow-primary/25 text-white"
+                  startContent={
+                    isSaving ? (
+                      <LoaderIcon className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <SaveIcon className="h-5 w-5" />
+                    )
+                  }
+                  onPress={handleSaveAnalysis}
+                  isDisabled={isSaving}
                 >
-                  Create New Resume with AI
+                  {isSaving
+                    ? "Saving Analysis..."
+                    : "Save Analysis & Track Progress"}
                 </Button>
-              </Link>
-              <Link href="/auth/register" className="flex-1">
+              ) : (
+                <div className="space-y-2">
+                  <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <AlertCircleIcon className="h-4 w-4 text-warning" />
+                      <span className="text-warning font-medium">
+                        Sign up to save your analysis and track progress over
+                        time
+                      </span>
+                    </div>
+                  </div>
+                  <Link href="/auth/register">
+                    <Button
+                      color="primary"
+                      size="lg"
+                      className="w-full font-semibold bg-gradient-to-r from-primary to-secondary shadow-lg shadow-primary/25"
+                      startContent={<UserIcon className="h-5 w-5" />}
+                    >
+                      Save Analysis & Track Progress
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Secondary Actions */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/resume/create" className="flex-1">
+                  <Button
+                    color="primary"
+                    variant="bordered"
+                    size="lg"
+                    className="w-full font-semibold"
+                    startContent={<SparklesIcon className="h-5 w-5" />}
+                  >
+                    Create New Resume with AI
+                  </Button>
+                </Link>
                 <Button
-                  variant="bordered"
+                  variant="light"
                   size="lg"
-                  className="w-full font-semibold"
-                  startContent={<UserIcon className="h-5 w-5" />}
+                  className="flex-1"
+                  onPress={onStartOver}
+                  startContent={<RefreshCwIcon className="h-5 w-5" />}
                 >
-                  Save Analysis & Track Progress
+                  Analyze Another Resume
                 </Button>
-              </Link>
-              <Button
-                variant="light"
-                size="lg"
-                onPress={onStartOver}
-                startContent={<RefreshCwIcon className="h-5 w-5" />}
-              >
-                Analyze Another Resume
-              </Button>
+              </div>
+
+              {/* Timeline Link for Logged In Users */}
+              {session?.user && (
+                <div className="pt-2 border-t border-default-200">
+                  <Link href="/applicant/resumes">
+                    <Button
+                      variant="light"
+                      size="sm"
+                      className="w-full text-primary"
+                      startContent={<TrendingUpIcon className="h-4 w-4" />}
+                    >
+                      View Your Resume Timeline
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </CardBody>
         </Card>

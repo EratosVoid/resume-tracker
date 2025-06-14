@@ -1,5 +1,14 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Model } from "mongoose";
 import bcrypt from "bcryptjs";
+
+interface IUserModel extends Model<IUser> {
+  findWithTimeline(userId: string): Promise<IUser | null>;
+  updateUserScores(userId: string): Promise<{
+    averageScore: number;
+    latestScore: number;
+    improvement: number;
+  } | null>;
+}
 
 export interface IUser extends Document {
   name: string;
@@ -13,6 +22,10 @@ export interface IUser extends Document {
   // Timeline references (populated when needed)
   resumes?: mongoose.Types.ObjectId[]; // References to Resume model
   submissions?: mongoose.Types.ObjectId[]; // References to Submission model
+  // Score tracking
+  averageScore: number; // Average of all ATS scores across resume versions
+  latestScore: number; // Most recent ATS score
+  improvement: number; // Random number between -10 to 10 representing improvement trend
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -69,6 +82,25 @@ const UserSchema = new Schema<IUser>(
         ref: "Submission",
       },
     ],
+    // Score tracking fields
+    averageScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    latestScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    improvement: {
+      type: Number,
+      default: 0,
+      min: -10,
+      max: 10,
+    },
   },
   {
     timestamps: true,
@@ -131,5 +163,89 @@ UserSchema.statics.findWithTimeline = function (userId: string) {
     });
 };
 
-export default mongoose.models.User ||
-  mongoose.model<IUser>("User", UserSchema);
+// Static method to calculate and update user scores
+UserSchema.statics.updateUserScores = async function (userId: string) {
+  try {
+    const Resume = mongoose.model("Resume");
+    const Submission = mongoose.model("Submission");
+
+    // Find user's resume profile
+    const resume = await Resume.findOne({ userId });
+
+    let allScores: number[] = [];
+    let latestScore = 0;
+
+    // Collect scores from resume versions (ATS scores) with timestamps
+    let scoredEntries: { score: number; createdAt: Date }[] = [];
+
+    if (resume && resume.resumeVersions) {
+      resume.resumeVersions.forEach((version: any) => {
+        if (version.atsScores && version.atsScores.length > 0) {
+          version.atsScores.forEach((atsScore: any) => {
+            scoredEntries.push({
+              score: atsScore.score,
+              createdAt: atsScore.createdAt || version.createdAt || new Date(),
+            });
+          });
+        }
+      });
+    }
+
+    // Collect scores from submissions
+    const submissions = await Submission.find({
+      userId,
+      isAnonymous: false,
+    }).sort({ createdAt: -1 });
+    submissions.forEach((submission: any) => {
+      if (submission.atsScore) {
+        scoredEntries.push({
+          score: submission.atsScore,
+          createdAt:
+            submission.createdAt || submission.submittedAt || new Date(),
+        });
+      }
+    });
+
+    // Sort all scored entries by creation date (newest first) and extract scores
+    scoredEntries.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    allScores = scoredEntries.map((entry) => entry.score);
+
+    // Calculate latest score (most recent)
+    if (allScores.length > 0) {
+      latestScore = allScores[0]; // First item is most recent due to sorting
+    }
+
+    // Calculate average score
+    const averageScore =
+      allScores.length > 0
+        ? Math.round(
+            allScores.reduce((sum, score) => sum + score, 0) / allScores.length
+          )
+        : 0;
+
+    // Generate random improvement between -10 and 10
+    const improvement = Math.floor(Math.random() * 21) - 10; // -10 to 10
+
+    // Update user with calculated scores
+    await this.findByIdAndUpdate(userId, {
+      averageScore,
+      latestScore,
+      improvement,
+    });
+
+    console.log(
+      `Updated scores for user ${userId}: avg=${averageScore}, latest=${latestScore}, improvement=${improvement}`
+    );
+
+    return { averageScore, latestScore, improvement };
+  } catch (error) {
+    console.error("Error updating user scores:", error);
+    return null;
+  }
+};
+
+export default (mongoose.models.User as IUserModel) ||
+  mongoose.model<IUser, IUserModel>("User", UserSchema);

@@ -186,16 +186,19 @@ SubmissionSchema.post("save", async function () {
 
       // Update user's submissions timeline if not anonymous
       if (this.userId && !this.isAnonymous) {
-        await mongoose
-          .model("User")
-          .findByIdAndUpdate(
-            this.userId,
-            { $addToSet: { submissions: this._id } },
-            { new: true }
-          );
+        const User = mongoose.model("User");
+        await User.findByIdAndUpdate(
+          this.userId,
+          { $addToSet: { submissions: this._id } },
+          { new: true }
+        );
         console.log(
           `Added submission ${this._id} to user ${this.userId} timeline`
         );
+
+        // Update user scores after adding submission
+        await (User as any).updateUserScores(this.userId.toString());
+        console.log(`Updated scores for user ${this.userId} after submission`);
       }
     } catch (error) {
       console.error("Error updating submission-related counts:", error);
@@ -215,11 +218,18 @@ SubmissionSchema.post("findOneAndDelete", async function (doc) {
 
       // Update user's submissions timeline if not anonymous
       if (doc.userId && !doc.isAnonymous) {
-        await mongoose
-          .model("User")
-          .findByIdAndUpdate(doc.userId, { $pull: { submissions: doc._id } });
+        const User = mongoose.model("User");
+        await User.findByIdAndUpdate(doc.userId, {
+          $pull: { submissions: doc._id },
+        });
         console.log(
           `Removed submission ${doc._id} from user ${doc.userId} timeline`
+        );
+
+        // Update user scores after removing submission
+        await (User as any).updateUserScores(doc.userId.toString());
+        console.log(
+          `Updated scores for user ${doc.userId} after submission deletion`
         );
       }
     } catch (error) {
@@ -240,11 +250,18 @@ SubmissionSchema.post("deleteOne", async function () {
 
       // Update user's submissions timeline if not anonymous
       if (doc.userId && !doc.isAnonymous) {
-        await mongoose
-          .model("User")
-          .findByIdAndUpdate(doc.userId, { $pull: { submissions: doc._id } });
+        const User = mongoose.model("User");
+        await User.findByIdAndUpdate(doc.userId, {
+          $pull: { submissions: doc._id },
+        });
         console.log(
           `Removed submission ${doc._id} from user ${doc.userId} timeline`
+        );
+
+        // Update user scores after removing submission
+        await (User as any).updateUserScores(doc.userId.toString());
+        console.log(
+          `Updated scores for user ${doc.userId} after submission deletion`
         );
       }
     }

@@ -65,11 +65,6 @@ const hrDashboardNavItems = [
     href: "/dashboard/analytics",
     icon: BarChart3Icon,
   },
-  {
-    name: "Settings",
-    href: "/dashboard/settings",
-    icon: SettingsIcon,
-  },
 ];
 
 const applicantDashboardNavItems = [
@@ -97,11 +92,6 @@ const applicantDashboardNavItems = [
     name: "Upload Resume",
     href: "/resume/upload",
     icon: UploadIcon,
-  },
-  {
-    name: "Settings",
-    href: "/dashboard/settings",
-    icon: SettingsIcon,
   },
 ];
 
@@ -203,6 +193,7 @@ export function UniversalSidebar({ isOpen, onToggle }: UniversalSidebarProps) {
                 pathname === item.href ||
                 (item.href !== "/" &&
                   item.href !== "/dashboard" &&
+                  item.href !== "/applicant" &&
                   pathname.startsWith(item.href));
 
               return (
