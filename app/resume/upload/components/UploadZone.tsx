@@ -82,7 +82,7 @@ export default function UploadZone({
               </p>
               <input
                 type="file"
-                accept=".pdf,.docx,.doc,.txt"
+                accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png"
                 onChange={handleFileChange}
                 className="hidden"
                 id="resume-upload"
@@ -103,7 +103,7 @@ export default function UploadZone({
               </Button>
             </div>
             <div className="text-sm text-default-500 space-y-1">
-              <p>Supported formats: PDF, DOCX, TXT</p>
+              <p>Supported formats: PDF, DOCX, TXT, PNG, JPG</p>
               <p>Maximum file size: 5MB</p>
             </div>
           </div>

@@ -6,6 +6,7 @@ const f = createUploadthing();
 export const ourFileRouter = {
   resumeUploader: f({
     pdf: { maxFileSize: "4MB", maxFileCount: 1 },
+    image: { maxFileSize: "4MB", maxFileCount: 1 },
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
       maxFileSize: "4MB",
       maxFileCount: 1,

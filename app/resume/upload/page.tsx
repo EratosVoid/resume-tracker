@@ -67,10 +67,13 @@ export default function ResumeUploadPage() {
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
+      "image/jpeg",
+      "image/png",
+      "image/jpg"
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Please upload a PDF, DOCX, or TXT file");
+      toast.error("Please upload a PDF, DOCX, TXT, or image file (JPG, PNG)");
       return;
     }
 
