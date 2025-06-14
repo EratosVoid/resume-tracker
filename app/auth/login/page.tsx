@@ -46,7 +46,7 @@ export default function LoginPage() {
         <Card>
           <CardHeader className="flex flex-col items-center pb-6">
             <h1 className="text-2xl font-bold">Sign In</h1>
-            <p className="text-default-600">Welcome back to ATS Portal</p>
+            <p className="text-default-600">Welcome back to Screener.ai</p>
           </CardHeader>
           <CardBody>
             <form onSubmit={handleSubmit} className="space-y-6">

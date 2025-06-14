@@ -154,7 +154,7 @@ function RegisterPageContent() {
           <CardHeader className="flex flex-col items-center pb-6">
             <div className="flex items-center gap-2 mb-3">
               <SparklesIcon className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold">Join ResumeIQ</h1>
+              <h1 className="text-2xl font-bold">Join Screener.ai</h1>
             </div>
             <p className="text-default-600 text-center">
               Choose your account type to get started

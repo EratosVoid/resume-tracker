@@ -257,7 +257,7 @@ export default function HomePage() {
             classNames={{
               tabList:
                 "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-              cursor: "w-full bg-primary",
+              cursor: "h-1 bottom-0 bg-primary rounded-none",
               tab: "max-w-fit px-0 h-12",
               tabContent: "group-data-[selected=true]:text-primary",
             }}

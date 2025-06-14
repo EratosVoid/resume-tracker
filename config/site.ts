@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "ResumeIQ",
+  name: "Screener.ai",
   description:
     "AI-powered platform for job seekers to create winning resumes and recruiters to find perfect candidates faster",
   navItems: [
