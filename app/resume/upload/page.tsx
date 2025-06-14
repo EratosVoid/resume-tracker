@@ -414,6 +414,7 @@ export default function ResumeUploadPage() {
           onClose={onClose}
           size="3xl"
           scrollBehavior="inside"
+          hideCloseButton
         >
           <ModalContent>
             <ModalHeader>
