@@ -8,7 +8,6 @@ import {
   Button,
   Progress,
   Chip,
-  Divider,
   Modal,
   ModalContent,
   ModalHeader,
@@ -17,6 +16,7 @@ import {
 } from "@heroui/react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 import {
   UploadIcon,
   FileTextIcon,
@@ -27,55 +27,181 @@ import {
   UserIcon,
   BrainIcon,
   ArrowLeftIcon,
+  XIcon,
 } from "lucide-react";
 
+interface FileInfo {
+  fileId: string;
+  filePath: string;
+  originalName: string;
+  fileSize: number;
+  fileType: string;
+  uploadedAt: string;
+}
+
+interface AnalysisResult {
+  overallScore: number;
+  sections: {
+    formatting: { score: number; feedback: string };
+    content: { score: number; feedback: string };
+    keywords: { score: number; feedback: string };
+    atsCompatibility: { score: number; feedback: string };
+  };
+  extractedInfo: {
+    name: string;
+    email: string;
+    phone: string;
+    location: string;
+    summary: string;
+    experience: string;
+    education: string;
+    skills: string[];
+  };
+  improvements: string[];
+  matchedSkills: string[];
+  missingSkills: string[];
+}
+
 export default function ResumeUploadPage() {
-  const [uploadedFile, setUploadedFile] = useState<any>(null);
-  const [analysis, setAnalysis] = useState<any>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [dragActive, setDragActive] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // Mock analysis result for demo
-  const mockAnalysis = {
-    overallScore: 78,
-    sections: {
-      formatting: { score: 85, feedback: "Well-structured and easy to read" },
-      content: {
-        score: 75,
-        feedback:
-          "Good experience details, could add more quantified achievements",
-      },
-      keywords: { score: 70, feedback: "Missing some key industry terms" },
-      atsCompatibility: {
-        score: 82,
-        feedback: "Compatible with most ATS systems",
-      },
-    },
-    improvements: [
-      "Add quantified achievements with specific numbers and percentages",
-      "Include more industry-specific keywords for your target role",
-      "Consider adding a professional summary section",
-      "Optimize bullet points for better readability",
-    ],
-    matchedSkills: ["JavaScript", "React", "Node.js", "MongoDB", "AWS"],
-    missingSkills: ["TypeScript", "Docker", "Kubernetes", "GraphQL"],
-  };
-
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event?.target?.files?.[0] as any;
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
+
+    // Validate file type
+    const allowedTypes = [
+      "text/plain",
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please upload a PDF, DOCX, or TXT file");
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
 
     setUploadedFile(file);
     setIsAnalyzing(true);
+    setUploadProgress(0);
 
-    // Simulate API call
-    setTimeout(() => {
-      setAnalysis(mockAnalysis);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      console.log("Uploading file:", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+      console.log("FormData entries:", Array.from(formData.entries()));
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      const response = await fetch("/api/resume/parse", {
+        method: "POST",
+        body: formData,
+        // Don't set Content-Type header - let the browser set it with boundary
+      });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to analyze resume");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAnalysis(data.analysis);
+        setFileInfo(data.fileInfo);
+        setTimeout(() => {
+          setIsAnalyzing(false);
+          onOpen();
+        }, 500);
+        toast.success("Resume analyzed successfully!");
+      } else {
+        throw new Error(data.error || "Analysis failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to analyze resume"
+      );
       setIsAnalyzing(false);
-      onOpen();
-    }, 3000);
+      setUploadedFile(null);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const resetUpload = () => {
+    setUploadedFile(null);
+    setFileInfo(null);
+    setAnalysis(null);
+    setIsAnalyzing(false);
+    setUploadProgress(0);
+    onClose();
+  };
+
+  const downloadFile = () => {
+    if (fileInfo) {
+      const link = document.createElement("a");
+      link.href = `/api/files/${fileInfo.fileId}`;
+      link.download = fileInfo.originalName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const getScoreColor = (score: number) => {
@@ -138,34 +264,47 @@ export default function ResumeUploadPage() {
                 </div>
               </CardHeader>
               <CardBody>
-                <div className="border-2 border-dashed border-default-300 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    dragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-default-300 hover:border-primary/50"
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
                   <div className="space-y-4">
                     <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto">
                       <FileTextIcon className="h-8 w-8 text-primary" />
                     </div>
                     <div>
                       <h3 className="text-lg font-medium mb-2">
-                        Drop your resume here
+                        {dragActive
+                          ? "Drop your resume here"
+                          : "Drop your resume here"}
                       </h3>
                       <p className="text-default-600 mb-4">
                         or click to browse files
                       </p>
                       <input
                         type="file"
-                        accept=".pdf,.docx,.txt"
-                        onChange={handleFileUpload}
+                        accept=".pdf,.docx,.doc,.txt"
+                        onChange={handleFileChange}
                         className="hidden"
                         id="resume-upload"
                       />
-                      <label htmlFor="resume-upload">
-                        <Button
-                          color="primary"
-                          className="cursor-pointer"
-                          startContent={<UploadIcon className="h-4 w-4" />}
-                        >
-                          Choose File
-                        </Button>
-                      </label>
+                      <Button
+                        color="primary"
+                        className="cursor-pointer"
+                        startContent={<UploadIcon className="h-4 w-4" />}
+                        onPress={() =>
+                          document.getElementById("resume-upload")?.click()
+                        }
+                      >
+                        Choose File
+                      </Button>
                     </div>
                     <p className="text-sm text-default-500">
                       Supported formats: PDF, DOCX, TXT (Max 5MB)
@@ -215,6 +354,26 @@ export default function ResumeUploadPage() {
             <Card>
               <CardBody className="p-8">
                 <div className="space-y-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <FileTextIcon className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-medium">{uploadedFile.name}</h3>
+                        <p className="text-sm text-default-600">
+                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      isIconOnly
+                      variant="light"
+                      onPress={resetUpload}
+                      startContent={<XIcon className="h-4 w-4" />}
+                    />
+                  </div>
+
                   <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto">
                     <BrainIcon className="h-12 w-12 text-primary animate-pulse" />
                   </div>
@@ -227,14 +386,21 @@ export default function ResumeUploadPage() {
                       score...
                     </p>
                     <Progress
-                      value={75}
+                      value={uploadProgress}
                       color="primary"
                       className="max-w-md mx-auto"
                       showValueLabel={true}
                     />
                   </div>
                   <div className="text-sm text-default-500">
-                    File: {uploadedFile?.name || "No file selected"}
+                    {uploadProgress < 30 && "Uploading file..."}
+                    {uploadProgress >= 30 &&
+                      uploadProgress < 60 &&
+                      "Extracting text..."}
+                    {uploadProgress >= 60 &&
+                      uploadProgress < 90 &&
+                      "Analyzing with AI..."}
+                    {uploadProgress >= 90 && "Finalizing results..."}
                   </div>
                 </div>
               </CardBody>
@@ -251,41 +417,123 @@ export default function ResumeUploadPage() {
         >
           <ModalContent>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-success/10 rounded-lg">
-                  <CheckCircleIcon className="h-6 w-6 text-success" />
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-success/10 rounded-lg">
+                    <CheckCircleIcon className="h-6 w-6 text-success" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      Resume Analysis Complete
+                    </h2>
+                    <p className="text-default-600 text-sm">
+                      Here's your detailed breakdown
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    Resume Analysis Complete
-                  </h2>
-                  <p className="text-default-600 text-sm">
-                    Here's your detailed breakdown
-                  </p>
-                </div>
+                <Button
+                  isIconOnly
+                  variant="light"
+                  onPress={resetUpload}
+                  startContent={<XIcon className="h-4 w-4" />}
+                />
               </div>
             </ModalHeader>
             <ModalBody className="space-y-6">
               {analysis && (
                 <>
+                  {/* File Information */}
+                  {fileInfo && (
+                    <Card>
+                      <CardBody className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <FileTextIcon className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium">
+                                {fileInfo.originalName}
+                              </h4>
+                              <p className="text-sm text-default-600">
+                                {(fileInfo.fileSize / 1024 / 1024).toFixed(2)}{" "}
+                                MB • Uploaded{" "}
+                                {new Date(fileInfo.uploadedAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="bordered"
+                            onPress={downloadFile}
+                            startContent={<UploadIcon className="h-4 w-4" />}
+                          >
+                            Download
+                          </Button>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  )}
+
                   {/* Overall Score */}
                   <Card>
                     <CardBody className="text-center p-6">
                       <div className="text-4xl font-bold text-primary mb-2">
-                        {analysis?.overallScore}%
+                        {analysis.overallScore}%
                       </div>
                       <Chip
-                        color={getScoreColor(analysis?.overallScore)}
+                        color={getScoreColor(analysis.overallScore)}
                         variant="flat"
                         size="lg"
                       >
-                        {getScoreLabel(analysis?.overallScore)}
+                        {getScoreLabel(analysis.overallScore)}
                       </Chip>
                       <p className="text-default-600 mt-2">
                         Overall ATS Compatibility Score
                       </p>
                     </CardBody>
                   </Card>
+
+                  {/* Extracted Information */}
+                  {analysis.extractedInfo && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Extracted Information
+                      </h3>
+                      <Card>
+                        <CardBody className="space-y-3">
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-default-600">Name</p>
+                              <p className="font-medium">
+                                {analysis.extractedInfo.name || "Not found"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-default-600">Email</p>
+                              <p className="font-medium">
+                                {analysis.extractedInfo.email || "Not found"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-default-600">Phone</p>
+                              <p className="font-medium">
+                                {analysis.extractedInfo.phone || "Not found"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-default-600">
+                                Location
+                              </p>
+                              <p className="font-medium">
+                                {analysis.extractedInfo.location || "Not found"}
+                              </p>
+                            </div>
+                          </div>
+                        </CardBody>
+                      </Card>
+                    </div>
+                  )}
 
                   {/* Section Scores */}
                   <div>
@@ -294,7 +542,7 @@ export default function ResumeUploadPage() {
                     </h3>
                     <div className="space-y-4">
                       {Object.entries(analysis.sections).map(
-                        ([key, section]: any) => (
+                        ([key, section]) => (
                           <div
                             key={key}
                             className="flex items-center justify-between p-4 bg-default-100 rounded-lg"
@@ -305,7 +553,7 @@ export default function ResumeUploadPage() {
                                   {key.replace(/([A-Z])/g, " $1").trim()}
                                 </h4>
                                 <Chip
-                                  color={getScoreColor(section?.score)}
+                                  color={getScoreColor(section.score)}
                                   variant="flat"
                                   size="sm"
                                 >
@@ -330,18 +578,16 @@ export default function ResumeUploadPage() {
                         Matched Skills
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {analysis?.matchedSkills.map(
-                          (skill: any, index: any) => (
-                            <Chip
-                              key={index}
-                              color="success"
-                              variant="flat"
-                              size="sm"
-                            >
-                              {skill}
-                            </Chip>
-                          )
-                        )}
+                        {analysis.matchedSkills.map((skill, index) => (
+                          <Chip
+                            key={index}
+                            color="success"
+                            variant="flat"
+                            size="sm"
+                          >
+                            {skill}
+                          </Chip>
+                        ))}
                       </div>
                     </div>
                     <div>
@@ -350,18 +596,16 @@ export default function ResumeUploadPage() {
                         Suggested Skills
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {analysis?.missingSkills.map(
-                          (skill: any, index: any) => (
-                            <Chip
-                              key={index}
-                              color="warning"
-                              variant="flat"
-                              size="sm"
-                            >
-                              {skill}
-                            </Chip>
-                          )
-                        )}
+                        {analysis.missingSkills.map((skill, index) => (
+                          <Chip
+                            key={index}
+                            color="warning"
+                            variant="flat"
+                            size="sm"
+                          >
+                            {skill}
+                          </Chip>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -372,19 +616,17 @@ export default function ResumeUploadPage() {
                       Improvement Suggestions
                     </h3>
                     <div className="space-y-3">
-                      {analysis?.improvements.map(
-                        (improvement: any, index: any) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg"
-                          >
-                            <div className="p-1 bg-primary/10 rounded-full mt-0.5">
-                              <SparklesIcon className="h-3 w-3 text-primary" />
-                            </div>
-                            <p className="text-sm">{improvement}</p>
+                      {analysis.improvements.map((improvement, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg"
+                        >
+                          <div className="p-1 bg-primary/10 rounded-full mt-0.5">
+                            <SparklesIcon className="h-3 w-3 text-primary" />
                           </div>
-                        )
-                      )}
+                          <p className="text-sm">{improvement}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
