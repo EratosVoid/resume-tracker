@@ -41,11 +41,23 @@ CORE COMPETENCIES:
 
 INTELLIGENT INFERENCE GUIDELINES:
 
-1. TITLE EXTRACTION & STANDARDIZATION:
+1.1. TITLE EXTRACTION & STANDARDIZATION:
 - Use industry-standard job titles when possible
 - Infer title from responsibilities if not explicitly stated
 - Standardize variations (e.g., "JS Developer" → "JavaScript Developer")
 - Consider seniority indicators in description
+
+1.2. 1.5. DESCRIPTION ENHANCEMENT & EXPANSION:
+- Always ensure job description is comprehensive and detailed (minimum 5 lines)
+- If original description is brief, expand by adding:
+  * Detailed role responsibilities and day-to-day tasks
+  * Team collaboration and reporting structure
+  * Growth opportunities and career development aspects
+  * Company culture fit and work environment details
+  * Key performance indicators and success metrics
+- Maintain professional tone while expanding content
+- Base expansions on industry standards for similar roles
+- Never add fictional company-specific details, focus on role-generic expansions
 
 2. EXPERIENCE LEVEL REASONING:
 - "entry": 0-2 years, junior roles, internships, new grad positions
