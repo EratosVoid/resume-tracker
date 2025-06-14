@@ -67,7 +67,7 @@ export default function ResumeGeneratedView({
   return (
     <div className="min-h-screen bg-default-50">
       {/* Header */}
-      <div className="bg-white border-b border-default-200">
+      <div className="bg-white dark:bg-gray-900 border-b border-default-200">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -139,7 +139,7 @@ export default function ResumeGeneratedView({
                 </div>
               </CardHeader>
               <CardBody>
-                <div className="bg-white border rounded-lg p-8 min-h-[800px] shadow-sm">
+                <div className="bg-white dark:bg-gray-900 border rounded-lg p-8 min-h-[800px] shadow-sm">
                   <div className="whitespace-pre-wrap font-mono text-sm">
                     {resumeData.content || "Resume content will appear here..."}
                   </div>

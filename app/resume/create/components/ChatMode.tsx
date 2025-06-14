@@ -325,7 +325,7 @@ export default function ChatMode({
   return (
     <div className="min-h-screen bg-default-50">
       {/* Header */}
-      <div className="bg-white border-b border-default-200">
+      <div className="bg-white dark:bg-gray-900 border-b border-default-200">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
             <Button
