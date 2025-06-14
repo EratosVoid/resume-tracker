@@ -83,12 +83,21 @@ export default function JobAiChat({
     setLoading(true);
 
     try {
+      // Format conversation history, excluding the initial greeting
+      const conversationHistory = messages
+        .slice(1) // Skip the initial assistant greeting
+        .concat(userMessage) // Add the current message
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+
       const response = await fetch("/api/jobs/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input.trim() }),
+        body: JSON.stringify({ messages: conversationHistory }),
       });
 
       const result = await response.json();

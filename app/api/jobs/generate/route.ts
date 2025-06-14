@@ -6,21 +6,33 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json();
+    const { messages } = await request.json();
 
-    if (!message) {
+    if (!messages || !messages.length) {
       return NextResponse.json(
-        { error: "Message is required" },
+        { error: "Messages are required" },
         { status: 400 }
       );
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
-    const prompt = `
-You are a job posting assistant. Extract structured data from the following job description and return it as a JSON object with the exact structure below. If any field cannot be determined from the input, leave it empty or use reasonable defaults.
+    // Combine all user messages into a single context
+    interface Message {
+      role: "user" | "assistant" | string;
+      content: string;
+    }
 
-Job Description: "${message}"
+    const conversationContext = (messages as Message[])
+      .filter((msg: Message) => msg.role === "user")
+      .map((msg: Message) => msg.content)
+      .join("\n\n");
+
+    const prompt = `
+You are a job posting assistant. Extract structured data from the following job description and return it as a JSON object with the exact structure below.Consider all the information provided across multiple messages. If any field cannot be determined from the input, leave it empty or use reasonable defaults.
+
+Conversation Context:
+${conversationContext}
 
 Return ONLY a valid JSON object with this exact structure:
 {
