@@ -73,7 +73,6 @@ const visibilityOptions = [
 ];
 
 export default function JobsManagePage() {
-  const { data: session } = useSession();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

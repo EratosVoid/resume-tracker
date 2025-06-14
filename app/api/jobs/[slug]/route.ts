@@ -12,22 +12,26 @@ interface RouteParams {
 }
 
 const updateJobSchema = z.object({
-  title: z.string().min(1, 'Title is required').optional(),
-  description: z.string().min(1, 'Description is required').optional(),
+  title: z.string().min(1, "Title is required").optional(),
+  description: z.string().min(1, "Description is required").optional(),
   location: z.string().optional(),
-  experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
-  employmentType: z.enum(['full-time', 'part-time', 'contract', 'internship', 'freelance']).optional(),
-  salary: z.object({
-    min: z.number().optional(),
-    max: z.number().optional(),
-    currency: z.string().default('USD'),
-  }).optional(),
+  experienceLevel: z.enum(["entry", "mid", "senior", "executive"]).optional(),
+  employmentType: z
+    .enum(["full-time", "part-time", "contract", "internship", "freelance"])
+    .optional(),
+  salary: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+      currency: z.string().default("USD"),
+    })
+    .optional(),
   skills: z.array(z.string()).optional(),
   requirements: z.array(z.string()).optional(),
   benefits: z.array(z.string()).optional(),
   deadline: z.string().optional(),
   isPublic: z.boolean().optional(),
-  status: z.enum(['active', 'paused', 'closed']).optional(),
+  status: z.enum(["active", "paused", "closed"]).optional(),
 });
 
 // GET /api/jobs/[slug] - Fetch a specific job by slug
@@ -41,7 +45,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const job = await Job.findOne({
       slug,
       status: "active",
-    }).populate('createdBy', 'name company');
+    }).populate("createdBy", "name company");
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
@@ -49,11 +53,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Check if job is private and user doesn't have access
     const session = await getServerSession(authOptions);
-    if (!job.isPublic && (!session || job.createdBy._id.toString() !== session.user.id)) {
-      return NextResponse.json(
-        { error: 'Job not found' },
-        { status: 404 }
-      );
+    if (
+      !job.isPublic &&
+      (!session || job.createdBy._id.toString() !== session.user.id)
+    ) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
     // For private jobs, we might want to add additional checks here
@@ -70,12 +74,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'hr') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+
+    if (!session || session.user.role !== "hr") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
@@ -89,46 +90,44 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Check if user owns this job
     if (job.createdBy.toString() !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const body = await request.json();
     const validatedData = updateJobSchema.parse(body);
-    
+
     // Prepare update data
     const updateData: any = { ...validatedData };
-    
+
     // Update slug if title changed
     if (validatedData.title && validatedData.title !== job.title) {
-      updateData.slug = validatedData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        + '-' + Date.now();
+      updateData.slug =
+        validatedData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") +
+        "-" +
+        Date.now();
     }
-    
-    const updatedJob = await Job.findOneAndUpdate(
-      { slug },
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('createdBy', 'name company');
-    
+
+    const updatedJob = await Job.findOneAndUpdate({ slug }, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("createdBy", "name company");
+
     return NextResponse.json({ job: updatedJob });
   } catch (error) {
     console.error("Error updating job:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: error.errors[0].message },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -138,12 +137,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'hr') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+
+    if (!session || session.user.role !== "hr") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
@@ -159,10 +155,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     // Check if user owns this job
     if (job.createdBy.toString() !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await Job.findOneAndDelete({ slug });

@@ -1,9 +1,9 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Resume Tracker ATS",
+  name: "ResumeIQ",
   description:
-    "AI-powered Applicant Tracking System with intelligent resume analysis and matching",
+    "AI-powered platform for job seekers to create winning resumes and recruiters to find perfect candidates faster",
   navItems: [
     {
       label: "Home",
@@ -12,6 +12,14 @@ export const siteConfig = {
     {
       label: "Jobs",
       href: "/jobs",
+    },
+    {
+      label: "Create Resume",
+      href: "/resume/create",
+    },
+    {
+      label: "Upload Resume",
+      href: "/resume/upload",
     },
   ],
   navMenuItems: [
@@ -22,6 +30,18 @@ export const siteConfig = {
     {
       label: "Jobs",
       href: "/jobs",
+    },
+    {
+      label: "Create Resume",
+      href: "/resume/create",
+    },
+    {
+      label: "Upload Resume",
+      href: "/resume/upload",
+    },
+    {
+      label: "For Recruiters",
+      href: "/auth/register?type=hr",
     },
     {
       label: "Login",

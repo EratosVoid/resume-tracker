@@ -161,12 +161,45 @@ SubmissionSchema.index({ atsScore: -1 });
 SubmissionSchema.index({ status: 1 });
 SubmissionSchema.index({ submittedAt: -1 });
 
-// Pre-save middleware to update job application count
+// Post-save middleware to update job application count when new submission is created
 SubmissionSchema.post("save", async function () {
   if (this.isNew) {
-    await mongoose
-      .model("Job")
-      .findByIdAndUpdate(this.jobId, { $inc: { applicationCount: 1 } });
+    try {
+      await mongoose
+        .model("Job")
+        .findByIdAndUpdate(this.jobId, { $inc: { applicationCount: 1 } });
+      console.log(`Incremented application count for job ${this.jobId}`);
+    } catch (error) {
+      console.error("Error incrementing job application count:", error);
+    }
+  }
+});
+
+// Post-remove middleware to update job application count when submission is deleted
+SubmissionSchema.post("findOneAndDelete", async function (doc) {
+  if (doc) {
+    try {
+      await mongoose
+        .model("Job")
+        .findByIdAndUpdate(doc.jobId, { $inc: { applicationCount: -1 } });
+      console.log(`Decremented application count for job ${doc.jobId}`);
+    } catch (error) {
+      console.error("Error decrementing job application count:", error);
+    }
+  }
+});
+
+SubmissionSchema.post("deleteOne", async function () {
+  try {
+    const doc = await this.model.findOne(this.getQuery());
+    if (doc) {
+      await mongoose
+        .model("Job")
+        .findByIdAndUpdate(doc.jobId, { $inc: { applicationCount: -1 } });
+      console.log(`Decremented application count for job ${doc.jobId}`);
+    }
+  } catch (error) {
+    console.error("Error decrementing job application count:", error);
   }
 });
 

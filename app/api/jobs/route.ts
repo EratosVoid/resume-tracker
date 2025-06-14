@@ -11,12 +11,16 @@ const createJobSchema = z.object({
   description: z.string().min(1, "Description is required"),
   location: z.string().optional(),
   experienceLevel: z.enum(["entry", "mid", "senior", "executive"]).optional(),
-  employmentType: z.enum(["full-time", "part-time", "contract", "internship", "freelance"]).optional(),
-  salary: z.object({
-    min: z.number().optional(),
-    max: z.number().optional(),
-    currency: z.string().default("USD"),
-  }).optional(),
+  employmentType: z
+    .enum(["full-time", "part-time", "contract", "internship", "freelance"])
+    .optional(),
+  salary: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+      currency: z.string().default("USD"),
+    })
+    .optional(),
   skills: z.array(z.string()).default([]),
   requirements: z.array(z.string()).default([]),
   benefits: z.array(z.string()).default([]),
@@ -48,10 +52,7 @@ export async function GET(request: NextRequest) {
 
     if (userOnly === "true") {
       if (!session || session.user.role !== "hr") {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
       query.createdBy = session.user.id;
     } else {
@@ -121,45 +122,43 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || session.user.role !== "hr") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
     const validatedData = createJobSchema.parse(body);
-    
+
     await connectDB();
-    
+
     // Generate slug from title
-    const slug = validatedData.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      + "-" + Date.now();
-    
+    const slug =
+      validatedData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") +
+      "-" +
+      Date.now();
+
     const job = await Job.create({
       ...validatedData,
       slug,
       createdBy: session.user.id,
       applicationCount: 0,
     });
-    
+
     return NextResponse.json({ job }, { status: 201 });
-    
   } catch (error) {
     console.error("Error creating job:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: error.errors[0].message },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

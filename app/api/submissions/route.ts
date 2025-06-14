@@ -145,6 +145,18 @@ export async function POST(request: NextRequest) {
 
     await submission.save();
 
+    // Ensure the job's application count is updated
+    // (The post-save middleware should handle this, but we'll do it explicitly to be sure)
+    try {
+      await Job.findByIdAndUpdate(job._id, {
+        $inc: { applicationCount: 1 },
+      });
+      console.log(`Updated application count for job ${job._id}`);
+    } catch (error) {
+      console.error("Error updating job application count:", error);
+      // Don't fail the submission if count update fails
+    }
+
     return NextResponse.json(
       {
         message: "Resume submitted successfully",
