@@ -24,6 +24,10 @@ interface FileInfo {
 
 interface AnalysisResult {
   overallScore: number;
+  tone: {
+    category: string;
+    reasoning: string;
+  };
   sections: {
     formatting: { score: number; feedback: string };
     content: { score: number; feedback: string };

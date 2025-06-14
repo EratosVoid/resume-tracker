@@ -22,6 +22,10 @@ import {
 
 interface AnalysisResult {
   overallScore: number;
+  tone: {
+    category: string;
+    reasoning: string;
+  };
   sections: {
     formatting: { score: number; feedback: string };
     content: { score: number; feedback: string };
@@ -161,6 +165,23 @@ export default function AnalysisResults({
                   </p>
                 </div>
               </div>
+            </div>
+          </CardBody>
+        </Card>
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FileTextIcon className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Resume Tone</h3>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <div className="flex flex-col gap-2">
+              <div className="font-medium text-lg">{analysis.tone.category}</div>
+              <p className="text-default-600">{analysis.tone.reasoning}</p>
             </div>
           </CardBody>
         </Card>
