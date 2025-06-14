@@ -1,4 +1,4 @@
-# Resume Tracker ATS - AI-Powered Applicant Tracking System
+# Screener.ai - AI-Powered Applicant Tracking System
 
 A modern, intelligent applicant tracking system built with Next.js, powered by Google Gemini AI for advanced resume analysis and candidate matching.
 
