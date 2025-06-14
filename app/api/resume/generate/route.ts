@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/database";
 import User from "@/lib/models/User";
-import Applicant from "@/lib/models/Applicant";
+import Resume from "@/lib/models/Resume";
 
 interface PersonalInfo {
   fullName: string;
@@ -87,13 +87,13 @@ export async function POST(request: NextRequest) {
         });
 
         if (user) {
-          // Find or create applicant profile
-          let applicant = await Applicant.findOne({
+          // Find or create resume profile
+          let resume = await Resume.findOne({
             userId: user._id,
           });
 
-          if (!applicant) {
-            applicant = await Applicant.create({
+          if (!resume) {
+            resume = await Resume.create({
               userId: user._id,
               isAnonymous: false,
               resumeVersions: [],
@@ -109,10 +109,10 @@ export async function POST(request: NextRequest) {
             createdAt: new Date(),
           };
 
-          applicant.resumeVersions.push(newResumeVersion);
-          await applicant.save();
+          resume.resumeVersions.push(newResumeVersion);
+          await resume.save();
 
-          console.log("Resume version saved to applicant profile");
+          console.log("Resume version saved to resume profile");
         }
       } catch (error) {
         console.error("Error saving resume version:", error);

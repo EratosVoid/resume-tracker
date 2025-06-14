@@ -18,7 +18,7 @@ export interface IResumeVersion {
   createdAt: Date;
 }
 
-export interface IApplicant extends Document {
+export interface IResume extends Document {
   userId: mongoose.Types.ObjectId; // Reference to User model
   phone?: string;
   resumeVersions: IResumeVersion[];
@@ -46,13 +46,13 @@ const ResumeVersionSchema = new Schema<IResumeVersion>({
   createdAt: { type: Date, default: Date.now },
 });
 
-const ApplicantSchema = new Schema<IApplicant>(
+const ResumeSchema = new Schema<IResume>(
   {
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true, // One applicant profile per user
+      unique: true, // One resume profile per user
     },
     phone: { type: String, trim: true },
     resumeVersions: [ResumeVersionSchema],
@@ -65,9 +65,41 @@ const ApplicantSchema = new Schema<IApplicant>(
 );
 
 // Create indexes for better performance
-ApplicantSchema.index({ userId: 1 });
-ApplicantSchema.index({ "resumeVersions.atsScores.jobId": 1 });
-ApplicantSchema.index({ createdAt: -1 });
+ResumeSchema.index({ userId: 1 });
+ResumeSchema.index({ "resumeVersions.atsScores.jobId": 1 });
+ResumeSchema.index({ createdAt: -1 });
 
-export default mongoose.models.Applicant ||
-  mongoose.model<IApplicant>("Applicant", ApplicantSchema);
+// Post-save middleware to update user's resumes array
+ResumeSchema.post("save", async function () {
+  if (this.isNew && this.userId) {
+    try {
+      await mongoose
+        .model("User")
+        .findByIdAndUpdate(
+          this.userId,
+          { $addToSet: { resumes: this._id } },
+          { new: true }
+        );
+      console.log(`Added resume ${this._id} to user ${this.userId} timeline`);
+    } catch (error) {
+      console.error("Error updating user resumes timeline:", error);
+    }
+  }
+});
+
+// Post-remove middleware to update user's resumes array
+ResumeSchema.post("findOneAndDelete", async function (doc) {
+  if (doc && doc.userId) {
+    try {
+      await mongoose
+        .model("User")
+        .findByIdAndUpdate(doc.userId, { $pull: { resumes: doc._id } });
+      console.log(`Removed resume ${doc._id} from user ${doc.userId} timeline`);
+    } catch (error) {
+      console.error("Error updating user resumes timeline:", error);
+    }
+  }
+});
+
+export default mongoose.models.Resume ||
+  mongoose.model<IResume>("Resume", ResumeSchema);

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/database";
 import User from "@/lib/models/User";
-import Applicant from "@/lib/models/Applicant";
+import Resume from "@/lib/models/Resume";
 import Submission from "@/lib/models/Submission";
 import Job from "@/lib/models/Job";
 
@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Find applicant profile by userId
-    let applicant = await Applicant.findOne({
+    // Find resume profile by userId
+    let resume = await Resume.findOne({
       userId: user._id,
     }).populate({
       path: "resumeVersions.atsScores.jobId",
@@ -34,19 +34,20 @@ export async function GET(request: NextRequest) {
       select: "title",
     });
 
-    // If no applicant profile exists, create one
-    if (!applicant) {
-      applicant = await Applicant.create({
+    // If no resume profile exists, create one
+    if (!resume) {
+      resume = await Resume.create({
         userId: user._id,
         isAnonymous: false,
         resumeVersions: [],
       });
     }
 
-    // Get application submissions for this applicant
+    // Get application submissions for this user (using userId and email)
     const submissions = await Submission.find({
       $or: [
-        { applicantId: applicant._id },
+        { userId: user._id },
+        { resumeId: resume._id },
         { applicantEmail: session.user.email?.toLowerCase() },
       ],
     })
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       .sort({ submittedAt: -1 });
 
     // Calculate stats
-    const resumeVersions = applicant.resumeVersions || [];
+    const resumeVersions = resume.resumeVersions || [];
     const totalResumes = resumeVersions.length;
 
     // Calculate average ATS score across all resume versions and applications
@@ -152,13 +153,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Find or create applicant profile
-    let applicant = await Applicant.findOne({
+    // Find or create resume profile
+    let resume = await Resume.findOne({
       userId: user._id,
     });
 
-    if (!applicant) {
-      applicant = await Applicant.create({
+    if (!resume) {
+      resume = await Resume.create({
         userId: user._id,
         isAnonymous: false,
         resumeVersions: [],
@@ -186,8 +187,8 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
     };
 
-    applicant.resumeVersions.push(newResumeVersion);
-    await applicant.save();
+    resume.resumeVersions.push(newResumeVersion);
+    await resume.save();
 
     return NextResponse.json({
       success: true,

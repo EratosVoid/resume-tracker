@@ -49,24 +49,26 @@ export async function GET(
       .sort({ atsScore: -1, submittedAt: -1 }) // Sort by ATS score first, then by date
       .skip(skip)
       .limit(limit)
-      .populate("applicantId", "name email phone")
+      .populate("userId", "name email")
+      .populate("resumeId", "phone")
       .lean();
 
     const total = await Submission.countDocuments(filter);
     const pages = Math.ceil(total / limit);
 
-    // Transform the data to include applicant info
+    // Transform the data to include user/applicant info
     const transformedApplications = applications.map((app: any) => ({
       _id: app._id,
-      name: app.applicantId?.name || app.applicantName || "Anonymous",
-      email: app.applicantId?.email || app.applicantEmail || "",
-      phone: app.applicantId?.phone || app.applicantPhone || "",
+      name: app.userId?.name || app.applicantName || "Anonymous",
+      email: app.userId?.email || app.applicantEmail || "",
+      phone: app.resumeId?.phone || app.applicantPhone || "",
       resumeUrl: app.uploadedFileURL,
       parsedResumeData: app.parsedResumeData,
       atsScore: app.atsScore || 0,
       skillsMatched: app.geminiAnalysis?.skillsMatched || [],
       submittedAt: app.submittedAt,
       status: app.status === "new" ? "pending" : app.status,
+      isAnonymous: app.isAnonymous || false,
     }));
 
     return NextResponse.json({

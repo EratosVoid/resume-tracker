@@ -23,7 +23,8 @@ export interface IParsedResumeData {
 
 export interface ISubmission extends Document {
   jobId: mongoose.Types.ObjectId;
-  applicantId?: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId; // Reference to User who submitted (can be anonymous)
+  resumeId?: mongoose.Types.ObjectId; // Reference to Resume model
   applicantName: string;
   applicantEmail: string;
   applicantPhone?: string;
@@ -45,6 +46,7 @@ export interface ISubmission extends Document {
   reviewedBy?: mongoose.Types.ObjectId;
   reviewedAt?: Date;
   submittedAt: Date;
+  isAnonymous: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -95,9 +97,13 @@ const SubmissionSchema = new Schema<ISubmission>(
       ref: "Job",
       required: true,
     },
-    applicantId: {
+    userId: {
       type: Schema.Types.ObjectId,
-      ref: "Applicant",
+      ref: "User",
+    },
+    resumeId: {
+      type: Schema.Types.ObjectId,
+      ref: "Resume",
     },
     applicantName: {
       type: String,
@@ -147,6 +153,10 @@ const SubmissionSchema = new Schema<ISubmission>(
       type: Date,
       default: Date.now,
     },
+    isAnonymous: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -155,36 +165,65 @@ const SubmissionSchema = new Schema<ISubmission>(
 
 // Create indexes for better performance
 SubmissionSchema.index({ jobId: 1, submittedAt: -1 });
-SubmissionSchema.index({ applicantId: 1 });
+SubmissionSchema.index({ userId: 1 });
+SubmissionSchema.index({ resumeId: 1 });
 SubmissionSchema.index({ applicantEmail: 1 });
 SubmissionSchema.index({ atsScore: -1 });
 SubmissionSchema.index({ status: 1 });
 SubmissionSchema.index({ submittedAt: -1 });
+SubmissionSchema.index({ isAnonymous: 1 });
+SubmissionSchema.index({ createdAt: -1 }); // For timeline ordering
 
-// Post-save middleware to update job application count when new submission is created
+// Post-save middleware to update job application count and user timeline when new submission is created
 SubmissionSchema.post("save", async function () {
   if (this.isNew) {
     try {
+      // Update job application count
       await mongoose
         .model("Job")
         .findByIdAndUpdate(this.jobId, { $inc: { applicationCount: 1 } });
       console.log(`Incremented application count for job ${this.jobId}`);
+
+      // Update user's submissions timeline if not anonymous
+      if (this.userId && !this.isAnonymous) {
+        await mongoose
+          .model("User")
+          .findByIdAndUpdate(
+            this.userId,
+            { $addToSet: { submissions: this._id } },
+            { new: true }
+          );
+        console.log(
+          `Added submission ${this._id} to user ${this.userId} timeline`
+        );
+      }
     } catch (error) {
-      console.error("Error incrementing job application count:", error);
+      console.error("Error updating submission-related counts:", error);
     }
   }
 });
 
-// Post-remove middleware to update job application count when submission is deleted
+// Post-remove middleware to update job application count and user timeline when submission is deleted
 SubmissionSchema.post("findOneAndDelete", async function (doc) {
   if (doc) {
     try {
+      // Update job application count
       await mongoose
         .model("Job")
         .findByIdAndUpdate(doc.jobId, { $inc: { applicationCount: -1 } });
       console.log(`Decremented application count for job ${doc.jobId}`);
+
+      // Update user's submissions timeline if not anonymous
+      if (doc.userId && !doc.isAnonymous) {
+        await mongoose
+          .model("User")
+          .findByIdAndUpdate(doc.userId, { $pull: { submissions: doc._id } });
+        console.log(
+          `Removed submission ${doc._id} from user ${doc.userId} timeline`
+        );
+      }
     } catch (error) {
-      console.error("Error decrementing job application count:", error);
+      console.error("Error updating submission-related counts:", error);
     }
   }
 });
@@ -193,13 +232,24 @@ SubmissionSchema.post("deleteOne", async function () {
   try {
     const doc = await this.model.findOne(this.getQuery());
     if (doc) {
+      // Update job application count
       await mongoose
         .model("Job")
         .findByIdAndUpdate(doc.jobId, { $inc: { applicationCount: -1 } });
       console.log(`Decremented application count for job ${doc.jobId}`);
+
+      // Update user's submissions timeline if not anonymous
+      if (doc.userId && !doc.isAnonymous) {
+        await mongoose
+          .model("User")
+          .findByIdAndUpdate(doc.userId, { $pull: { submissions: doc._id } });
+        console.log(
+          `Removed submission ${doc._id} from user ${doc.userId} timeline`
+        );
+      }
     }
   } catch (error) {
-    console.error("Error decrementing job application count:", error);
+    console.error("Error updating submission-related counts:", error);
   }
 });
 

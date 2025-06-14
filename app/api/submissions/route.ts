@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "../../../lib/database";
 import Job from "../../../lib/models/Job";
 import Submission from "../../../lib/models/Submission";
-import Applicant from "../../../lib/models/Applicant";
+import Resume from "../../../lib/models/Resume";
+import User from "../../../lib/models/User";
 import { geminiService } from "../../../lib/services/gemini";
 import { z } from "zod";
 
@@ -61,20 +62,38 @@ export async function POST(request: NextRequest) {
     console.log("Analyzing resume with Gemini AI...");
     const analysis = await geminiService.analyzeResumeForJob(resumeText, job);
 
-    // Create or find applicant
-    let applicantId: string | undefined;
+    // Create or find user and resume profile
+    let userId: string | undefined;
+    let resumeId: string | undefined;
 
     if (validatedData.createProfile) {
-      // Check if applicant already exists
-      let applicant = await Applicant.findOne({
+      // Check if user already exists
+      let user = await User.findOne({
         email: validatedData.applicantEmail,
       });
 
-      if (!applicant) {
-        // Create new applicant
-        applicant = new Applicant({
+      if (!user) {
+        // Create new user (applicant role)
+        user = new User({
           name: validatedData.applicantName,
           email: validatedData.applicantEmail,
+          role: "applicant",
+          isActive: true,
+        });
+        await user.save();
+      }
+
+      userId = user._id.toString();
+
+      // Check if resume profile already exists for this user
+      let resume = await Resume.findOne({
+        userId: user._id,
+      });
+
+      if (!resume) {
+        // Create new resume profile
+        resume = new Resume({
+          userId: user._id,
           phone: validatedData.applicantPhone,
           isAnonymous: false,
           resumeVersions: [
@@ -98,10 +117,10 @@ export async function POST(request: NextRequest) {
           ],
         });
 
-        await applicant.save();
+        await resume.save();
       } else {
-        // Add new resume version to existing applicant
-        applicant.resumeVersions.push({
+        // Add new resume version to existing resume profile
+        resume.resumeVersions.push({
           parsedText: resumeText,
           rawFileURL: validatedData.fileUrl,
           fileName: validatedData.fileName,
@@ -119,16 +138,17 @@ export async function POST(request: NextRequest) {
           createdAt: new Date(),
         });
 
-        await applicant.save();
+        await resume.save();
       }
 
-      applicantId = applicant._id.toString();
+      resumeId = resume._id.toString();
     }
 
     // Create submission
     const submission = new Submission({
       jobId: job._id,
-      applicantId: applicantId || undefined,
+      userId: userId || undefined,
+      resumeId: resumeId || undefined,
       applicantName: validatedData.applicantName,
       applicantEmail: validatedData.applicantEmail,
       applicantPhone: validatedData.applicantPhone,
@@ -140,6 +160,7 @@ export async function POST(request: NextRequest) {
       rawResumeText: resumeText,
       geminiAnalysis: analysis.analysis,
       status: "new",
+      isAnonymous: !validatedData.createProfile,
     });
 
     await submission.save();

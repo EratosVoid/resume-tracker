@@ -3,17 +3,14 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { connectDB } from "@/lib/database";
 import User from "@/lib/models/User";
-import Applicant from "@/lib/models/Applicant";
+import Resume from "@/lib/models/Resume";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().optional(), // Optional for applicants who might not need accounts initially
   company: z.string().optional(),
-  role: z
-    .enum(["hr", "applicant"])
-    .optional()
-    .default("applicant"),
+  role: z.enum(["hr", "applicant"]).optional().default("applicant"),
 });
 
 export async function POST(request: NextRequest) {
@@ -79,9 +76,9 @@ export async function POST(request: NextRequest) {
     // Create user (password will be hashed automatically by the User model's pre-save middleware)
     const user = await User.create(userData);
 
-    // If user is an applicant, create an applicant profile
+    // If user is an applicant, create a resume profile
     if (validatedData.role === "applicant") {
-      await Applicant.create({
+      await Resume.create({
         userId: user._id,
         isAnonymous: false,
         resumeVersions: [],

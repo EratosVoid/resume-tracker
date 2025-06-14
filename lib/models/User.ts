@@ -10,6 +10,9 @@ export interface IUser extends Document {
   department?: string;
   isActive: boolean;
   lastLogin?: Date;
+  // Timeline references (populated when needed)
+  resumes?: mongoose.Types.ObjectId[]; // References to Resume model
+  submissions?: mongoose.Types.ObjectId[]; // References to Submission model
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -53,6 +56,19 @@ const UserSchema = new Schema<IUser>(
       default: true,
     },
     lastLogin: { type: Date },
+    // Timeline references for better query performance
+    resumes: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Resume",
+      },
+    ],
+    submissions: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Submission",
+      },
+    ],
   },
   {
     timestamps: true,
@@ -63,6 +79,7 @@ const UserSchema = new Schema<IUser>(
 UserSchema.index({ email: 1 });
 UserSchema.index({ role: 1 });
 UserSchema.index({ isActive: 1 });
+UserSchema.index({ createdAt: -1 }); // For timeline ordering
 
 // Pre-save middleware to hash password
 UserSchema.pre("save", async function (next) {
@@ -92,6 +109,26 @@ UserSchema.methods.toJSON = function () {
   const userObject = this.toObject();
   delete userObject.password;
   return userObject;
+};
+
+// Virtual method to get timeline data (resumes + submissions) sorted by date
+UserSchema.virtual("timeline").get(async function () {
+  // This would be used in API routes to populate timeline data
+  // Returns a combined array of resumes and submissions sorted by createdAt
+  return [];
+});
+
+// Static method to get user with timeline data
+UserSchema.statics.findWithTimeline = function (userId: string) {
+  return this.findById(userId)
+    .populate({
+      path: "resumes",
+      options: { sort: { createdAt: -1 } },
+    })
+    .populate({
+      path: "submissions",
+      options: { sort: { createdAt: -1 } },
+    });
 };
 
 export default mongoose.models.User ||

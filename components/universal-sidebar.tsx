@@ -14,6 +14,8 @@ import {
   UserPlusIcon,
   LogOutIcon,
   SparklesIcon,
+  FileTextIcon,
+  UploadIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { ThemeSwitch } from "@/components/theme-switch";
@@ -77,6 +79,11 @@ const applicantDashboardNavItems = [
     icon: HomeIcon,
   },
   {
+    name: "Resume Timeline",
+    href: "/applicant/resumes",
+    icon: FileTextIcon,
+  },
+  {
     name: "Browse Jobs",
     href: "/jobs",
     icon: BriefcaseIcon,
@@ -89,7 +96,7 @@ const applicantDashboardNavItems = [
   {
     name: "Upload Resume",
     href: "/resume/upload",
-    icon: UsersIcon,
+    icon: UploadIcon,
   },
   {
     name: "Settings",
