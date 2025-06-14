@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
@@ -12,6 +12,7 @@ import {
   Tabs,
   Tab,
   Chip,
+  Spinner,
 } from "@heroui/react";
 import { toast } from "react-hot-toast";
 import {
@@ -22,7 +23,25 @@ import {
   SparklesIcon,
 } from "lucide-react";
 
-export default function RegisterPage() {
+// Loading fallback component
+function RegisterPageSkeleton() {
+  return (
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-default-50">
+      <div className="max-w-md w-full">
+        <Card>
+          <CardBody className="flex items-center justify-center py-12">
+            <Spinner size="lg" color="primary" />
+            <p className="mt-4 text-default-600">
+              Loading registration form...
+            </p>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function RegisterPageContent() {
   const [userType, setUserType] = useState("applicant");
   const [formData, setFormData] = useState({
     name: "",
@@ -310,5 +329,13 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterPageSkeleton />}>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

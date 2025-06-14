@@ -98,14 +98,14 @@ export default function ResumeUpload({
         // In a real implementation, you'd parse the PDF here
         // For now, we'll simulate parsing
         text = "PDF content parsed...";
-        toast.info("PDF parsing is simulated in this demo");
+        toast.success("PDF parsing is simulated in this demo");
       } else if (
         file.type ===
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
       ) {
         // In a real implementation, you'd parse the DOCX here
         text = "DOCX content parsed...";
-        toast.info("DOCX parsing is simulated in this demo");
+        toast.success("DOCX parsing is simulated in this demo");
       }
 
       setUploadProgress(100);
@@ -230,7 +230,7 @@ export default function ResumeUpload({
 
               {!uploadedFile && (
                 <motion.div
-                  {...getRootProps()}
+                  {...(getRootProps() as any)}
                   className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                     isDragActive
                       ? "border-primary bg-primary/10"

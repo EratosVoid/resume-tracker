@@ -167,7 +167,7 @@ export default function JobList({
               className="sm:w-48"
             >
               {experienceLevels.map((level) => (
-                <SelectItem key={level.key} value={level.key}>
+                <SelectItem key={level.key} textValue={level.key}>
                   {level.label}
                 </SelectItem>
               ))}
@@ -294,7 +294,11 @@ export default function JobList({
                     <div className="flex flex-col gap-2 sm:items-end">
                       {job.deadline && (
                         <div
-                          className={`text-sm ${isDeadlineSoon(job.deadline) ? "text-warning" : "text-default-500"}`}
+                          className={`text-sm ${
+                            isDeadlineSoon(job.deadline)
+                              ? "text-warning"
+                              : "text-default-500"
+                          }`}
                         >
                           Deadline: {formatDate(job.deadline)}
                         </div>

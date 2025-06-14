@@ -30,8 +30,8 @@ import {
 } from "lucide-react";
 
 export default function ResumeUploadPage() {
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [analysis, setAnalysis] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState<any>(null);
+  const [analysis, setAnalysis] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -61,8 +61,10 @@ export default function ResumeUploadPage() {
     missingSkills: ["TypeScript", "Docker", "Kubernetes", "GraphQL"],
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event?.target?.files?.[0] as any;
     if (!file) return;
 
     setUploadedFile(file);
@@ -76,13 +78,13 @@ export default function ResumeUploadPage() {
     }, 3000);
   };
 
-  const getScoreColor = (score) => {
+  const getScoreColor = (score: number) => {
     if (score >= 80) return "success";
     if (score >= 60) return "warning";
     return "danger";
   };
 
-  const getScoreLabel = (score) => {
+  const getScoreLabel = (score: number) => {
     if (score >= 80) return "Excellent";
     if (score >= 60) return "Good";
     return "Needs Improvement";
@@ -232,7 +234,7 @@ export default function ResumeUploadPage() {
                     />
                   </div>
                   <div className="text-sm text-default-500">
-                    File: {uploadedFile.name}
+                    File: {uploadedFile?.name || "No file selected"}
                   </div>
                 </div>
               </CardBody>
@@ -270,14 +272,14 @@ export default function ResumeUploadPage() {
                   <Card>
                     <CardBody className="text-center p-6">
                       <div className="text-4xl font-bold text-primary mb-2">
-                        {analysis.overallScore}%
+                        {analysis?.overallScore}%
                       </div>
                       <Chip
-                        color={getScoreColor(analysis.overallScore)}
+                        color={getScoreColor(analysis?.overallScore)}
                         variant="flat"
                         size="lg"
                       >
-                        {getScoreLabel(analysis.overallScore)}
+                        {getScoreLabel(analysis?.overallScore)}
                       </Chip>
                       <p className="text-default-600 mt-2">
                         Overall ATS Compatibility Score
@@ -292,7 +294,7 @@ export default function ResumeUploadPage() {
                     </h3>
                     <div className="space-y-4">
                       {Object.entries(analysis.sections).map(
-                        ([key, section]) => (
+                        ([key, section]: any) => (
                           <div
                             key={key}
                             className="flex items-center justify-between p-4 bg-default-100 rounded-lg"
@@ -303,7 +305,7 @@ export default function ResumeUploadPage() {
                                   {key.replace(/([A-Z])/g, " $1").trim()}
                                 </h4>
                                 <Chip
-                                  color={getScoreColor(section.score)}
+                                  color={getScoreColor(section?.score)}
                                   variant="flat"
                                   size="sm"
                                 >
@@ -328,16 +330,18 @@ export default function ResumeUploadPage() {
                         Matched Skills
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {analysis.matchedSkills.map((skill, index) => (
-                          <Chip
-                            key={index}
-                            color="success"
-                            variant="flat"
-                            size="sm"
-                          >
-                            {skill}
-                          </Chip>
-                        ))}
+                        {analysis?.matchedSkills.map(
+                          (skill: any, index: any) => (
+                            <Chip
+                              key={index}
+                              color="success"
+                              variant="flat"
+                              size="sm"
+                            >
+                              {skill}
+                            </Chip>
+                          )
+                        )}
                       </div>
                     </div>
                     <div>
@@ -346,16 +350,18 @@ export default function ResumeUploadPage() {
                         Suggested Skills
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {analysis.missingSkills.map((skill, index) => (
-                          <Chip
-                            key={index}
-                            color="warning"
-                            variant="flat"
-                            size="sm"
-                          >
-                            {skill}
-                          </Chip>
-                        ))}
+                        {analysis?.missingSkills.map(
+                          (skill: any, index: any) => (
+                            <Chip
+                              key={index}
+                              color="warning"
+                              variant="flat"
+                              size="sm"
+                            >
+                              {skill}
+                            </Chip>
+                          )
+                        )}
                       </div>
                     </div>
                   </div>
@@ -366,17 +372,19 @@ export default function ResumeUploadPage() {
                       Improvement Suggestions
                     </h3>
                     <div className="space-y-3">
-                      {analysis.improvements.map((improvement, index) => (
-                        <div
-                          key={index}
-                          className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg"
-                        >
-                          <div className="p-1 bg-primary/10 rounded-full mt-0.5">
-                            <SparklesIcon className="h-3 w-3 text-primary" />
+                      {analysis?.improvements.map(
+                        (improvement: any, index: any) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg"
+                          >
+                            <div className="p-1 bg-primary/10 rounded-full mt-0.5">
+                              <SparklesIcon className="h-3 w-3 text-primary" />
+                            </div>
+                            <p className="text-sm">{improvement}</p>
                           </div>
-                          <p className="text-sm">{improvement}</p>
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
                   </div>
 

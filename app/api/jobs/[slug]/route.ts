@@ -6,9 +6,7 @@ import Job from "../../../../lib/models/Job";
 import { authOptions } from "@/lib/auth";
 
 interface RouteParams {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
 }
 
 const updateJobSchema = z.object({
@@ -39,7 +37,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
 
     // Find job by slug
     const job = await Job.findOne({
@@ -81,7 +79,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
     const job = await Job.findOne({ slug });
 
     if (!job) {
@@ -144,7 +142,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     await connectDB();
 
-    const { slug } = params;
+    const { slug } = await params;
 
     // Soft delete by updating status
     const job = await Job.findOne({ slug });

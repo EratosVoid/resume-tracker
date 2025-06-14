@@ -7,7 +7,7 @@ import Submission from "@/lib/models/Submission";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string; applicationId: string } }
+  { params }: { params: Promise<{ slug: string; applicationId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,6 +16,8 @@ export async function PUT(
     }
 
     await connectDB();
+
+    const { slug, applicationId } = await params;
 
     const { status } = await request.json();
 
@@ -34,7 +36,7 @@ export async function PUT(
 
     // Find the job and verify ownership
     const job = await Job.findOne({
-      slug: params.slug,
+      slug: slug,
       createdBy: session.user.id,
     });
 
@@ -48,7 +50,7 @@ export async function PUT(
     // Update the application status
     const application = await Submission.findOneAndUpdate(
       {
-        _id: params.applicationId,
+        _id: applicationId,
         jobId: job._id,
       },
       {

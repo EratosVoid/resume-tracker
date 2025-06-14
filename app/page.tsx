@@ -28,6 +28,10 @@ import {
   StarIcon,
   BuildingIcon,
   UserIcon,
+  ZapIcon,
+  TargetIcon,
+  AwardIcon,
+  RocketIcon,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -81,21 +85,45 @@ export default function HomePage() {
   ];
 
   const applicantBenefits = [
-    "AI-powered resume creation and optimization",
-    "Instant ATS compatibility scoring",
-    "Track resume performance across applications",
-    "Professional templates and formatting",
-    "Real-time improvement suggestions",
-    "Version history and analytics",
+    {
+      icon: ZapIcon,
+      title: "Lightning Fast Creation",
+      description: "AI-powered resume creation and optimization in minutes",
+      metric: "5x Faster",
+    },
+    {
+      icon: TargetIcon,
+      title: "ATS Compatibility",
+      description: "Instant scoring with detailed improvement suggestions",
+      metric: "95% Success Rate",
+    },
+    {
+      icon: TrendingUpIcon,
+      title: "Performance Tracking",
+      description: "Monitor resume performance across applications",
+      metric: "Real-time Analytics",
+    },
   ];
 
   const hrBenefits = [
-    "Reduce screening time by 80%",
-    "Improve candidate quality matching",
-    "Anonymous application support",
-    "Real-time AI analysis",
-    "Comprehensive skill matching",
-    "Mobile-responsive dashboard",
+    {
+      icon: ClockIcon,
+      title: "Time Savings",
+      description: "Reduce screening time with automated analysis",
+      metric: "80% Faster",
+    },
+    {
+      icon: AwardIcon,
+      title: "Quality Matching",
+      description: "Improve candidate quality with AI-powered matching",
+      metric: "3x Better Matches",
+    },
+    {
+      icon: RocketIcon,
+      title: "Scalable Solution",
+      description: "Handle thousands of applications effortlessly",
+      metric: "Unlimited Scale",
+    },
   ];
 
   return (
@@ -114,7 +142,7 @@ export default function HomePage() {
               </Chip>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              ResumeIQ
+              Screener.ai
             </h1>
             <p className="text-xl md:text-2xl text-default-600 mb-8 max-w-4xl mx-auto">
               The AI-powered platform that empowers job seekers to create
@@ -303,67 +331,173 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
+      {/* Enhanced Why Choose Section */}
+      <section className="py-20 px-4 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="max-w-6xl mx-auto relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-6">Why Choose ResumeIQ?</h2>
-            <p className="text-xl text-default-600">
-              Trusted by thousands of job seekers and hundreds of companies
-              worldwide
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Why Choose{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Screener.ai?
+              </span>
+            </h2>
+            <p className="text-xl text-default-600 max-w-3xl mx-auto">
+              Join thousands of professionals who've revolutionized their hiring
+              and job search experience
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-16">
             {/* Job Seekers Benefits */}
-            <div>
-              <h3 className="text-2xl font-bold mb-6 flex items-center">
-                <UserIcon className="h-6 w-6 text-primary mr-2" />
-                For Job Seekers
-              </h3>
-              <div className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <div className="flex items-center mb-8">
+                <div className="p-3 bg-primary/10 rounded-full mr-4">
+                  <UserIcon className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-primary">
+                    For Job Seekers
+                  </h3>
+                  <p className="text-default-600">
+                    Accelerate your career journey
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
                 {applicantBenefits.map((benefit, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: index * 0.1 }}
-                    className="flex items-center space-x-3"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+                    className="group"
                   >
-                    <CheckCircleIcon className="h-6 w-6 text-primary flex-shrink-0" />
-                    <span className="text-lg">{benefit}</span>
+                    <Card className="p-6 border border-primary/20 hover:border-primary/40 hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                      <CardBody className="p-0">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-primary/10 rounded-lg shrink-0 group-hover:bg-primary/20 transition-colors">
+                            <benefit.icon className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-lg font-semibold">
+                                {benefit.title}
+                              </h4>
+                              <Chip color="primary" variant="flat" size="sm">
+                                {benefit.metric}
+                              </Chip>
+                            </div>
+                            <p className="text-default-600">
+                              {benefit.description}
+                            </p>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
                   </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* HR Benefits */}
-            <div>
-              <h3 className="text-2xl font-bold mb-6 flex items-center">
-                <BuildingIcon className="h-6 w-6 text-secondary mr-2" />
-                For Recruiters
-              </h3>
-              <div className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <div className="flex items-center mb-8">
+                <div className="p-3 bg-secondary/10 rounded-full mr-4">
+                  <BuildingIcon className="h-8 w-8 text-secondary" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-secondary">
+                    For Recruiters
+                  </h3>
+                  <p className="text-default-600">
+                    Transform your hiring process
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
                 {hrBenefits.map((benefit, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: index * 0.1 }}
-                    className="flex items-center space-x-3"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+                    className="group"
                   >
-                    <CheckCircleIcon className="h-6 w-6 text-secondary flex-shrink-0" />
-                    <span className="text-lg">{benefit}</span>
+                    <Card className="p-6 border border-secondary/20 hover:border-secondary/40 hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                      <CardBody className="p-0">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-secondary/10 rounded-lg shrink-0 group-hover:bg-secondary/20 transition-colors">
+                            <benefit.icon className="h-6 w-6 text-secondary" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-lg font-semibold">
+                                {benefit.title}
+                              </h4>
+                              <Chip color="secondary" variant="flat" size="sm">
+                                {benefit.metric}
+                              </Chip>
+                            </div>
+                            <p className="text-default-600">
+                              {benefit.description}
+                            </p>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
                   </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </div>
+
+          {/* Trust Indicators */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="mt-16 text-center"
+          >
+            <div className="grid md:grid-cols-4 gap-8">
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-primary">99.9%</div>
+                <div className="text-sm text-default-600">Uptime Guarantee</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-primary">24/7</div>
+                <div className="text-sm text-default-600">AI Processing</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-primary">SOC2</div>
+                <div className="text-sm text-default-600">Compliant</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-primary">GDPR</div>
+                <div className="text-sm text-default-600">Protected</div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -414,7 +548,7 @@ export default function HomePage() {
             </h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
               Join thousands of job seekers and recruiters who have transformed
-              their hiring process with ResumeIQ
+              their hiring process with Screener.ai
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

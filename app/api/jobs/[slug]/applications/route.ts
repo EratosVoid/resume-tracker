@@ -7,7 +7,7 @@ import Submission from "@/lib/models/Submission";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,6 +17,8 @@ export async function GET(
 
     await connectDB();
 
+    const { slug } = await params;
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -25,7 +27,7 @@ export async function GET(
 
     // Find the job and verify ownership
     const job = await Job.findOne({
-      slug: params.slug,
+      slug: slug,
       createdBy: session.user.id,
     });
 

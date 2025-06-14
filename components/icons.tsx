@@ -15,11 +15,38 @@ export const Logo: React.FC<IconSvgProps> = ({
     width={size || width}
     {...props}
   >
+    {/* Magnifying glass lens */}
+    <circle
+      cx="13"
+      cy="11"
+      r="8"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
+
+    {/* AI screening dots pattern inside lens */}
+    <circle cx="10" cy="8" r="1.5" fill="currentColor" opacity="0.8" />
+    <circle cx="14" cy="8" r="1.5" fill="currentColor" opacity="0.6" />
+    <circle cx="16" cy="11" r="1.5" fill="currentColor" opacity="0.9" />
+    <circle cx="14" cy="14" r="1.5" fill="currentColor" opacity="0.7" />
+    <circle cx="10" cy="14" r="1.5" fill="currentColor" opacity="0.8" />
+    <circle cx="8" cy="11" r="1.5" fill="currentColor" opacity="0.5" />
+
+    {/* Magnifying glass handle */}
     <path
-      clipRule="evenodd"
-      d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
+      d="M21 21L26 26"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+
+    {/* AI sparkle accent */}
+    <path d="M25 8L26 6L27 8L26 10L25 8Z" fill="currentColor" opacity="0.7" />
+    <path
+      d="M23 5L23.5 4L24 5L23.5 6L23 5Z"
       fill="currentColor"
-      fillRule="evenodd"
+      opacity="0.5"
     />
   </svg>
 );
