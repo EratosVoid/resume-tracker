@@ -293,31 +293,26 @@ export default function AnalysisResults({
           <CardBody>
             <div className="grid md:grid-cols-2 gap-4">
               {Object.entries(analysis.sections).map(([key, section]) => (
-                <div
-                  key={key}
-                  className="p-4 bg-default-50 rounded-lg border border-default-200"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold capitalize">
-                      {key.replace(/([A-Z])/g, " $1").trim()}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-default-500">
-                        {(sectionWeights[key as keyof typeof sectionWeights] * 100)}%
-                      </span>
-                      <Chip
-                        color={getScoreColor(section.score)}
-                        variant="flat"
-                        size="sm"
-                        className="font-semibold"
-                      >
-                        {section.score}%
-                      </Chip>
-                    </div>
-                  </div>
-                  <p className="text-sm text-default-600">{section.feedback}</p>
+              <div
+                key={key}
+                className="p-4 bg-default-50 rounded-lg border border-default-200"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold capitalize">
+                    {key.replace(/([A-Z])/g, " $1").trim()}
+                  </h3>
+                  <Chip
+                    color={getScoreColor(section.score)}
+                    variant="flat"
+                    size="sm"
+                    className="font-semibold"
+                  >
+                    {section.score}%
+                  </Chip>
                 </div>
-              ))}
+                <p className="text-sm text-default-600">{section.feedback}</p>
+              </div>
+            ))}
             </div>
           </CardBody>
         </Card>

@@ -6,12 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { ArrowLeftIcon } from "lucide-react";
+import { Input, Textarea } from "@nextui-org/react";
 
 // Import our new components
 import UploadZone from "./components/UploadZone";
 import AnalysisProgress from "./components/AnalysisProgress";
 import AnalysisResults from "./components/AnalysisResults";
 import FeatureCards from "./components/FeatureCards";
+
+interface JobContext {
+  role?: string;
+  description?: string;
+}
 
 interface FileInfo {
   fileId: string;
@@ -59,6 +65,7 @@ export default function ResumeUploadPage() {
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [jobContext, setJobContext] = useState<JobContext>({});
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -92,6 +99,8 @@ export default function ResumeUploadPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      if (jobContext.role) formData.append("jobRole", jobContext.role);
+      if (jobContext.description) formData.append("jobDescription", jobContext.description);
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -147,6 +156,7 @@ export default function ResumeUploadPage() {
     setAnalysis(null);
     setUploadState("idle");
     setUploadProgress(0);
+    setJobContext({});
   };
 
   return (
@@ -191,6 +201,36 @@ export default function ResumeUploadPage() {
                   onFileUpload={handleFileUpload}
                   isUploading={uploadState !== "idle"}
                 />
+              </div>
+
+              {/* Job Context Inputs */}
+              <div className="max-w-3xl mx-auto mt-8">
+                <div className="space-y-4 bg-white/50 dark:bg-gray-900/50 p-6 rounded-xl backdrop-blur-sm">
+                  <h3 className="text-lg font-semibold text-default-700">
+                    Optional Job Context
+                  </h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Input
+                      label="Job Role"
+                      placeholder="e.g. Senior Software Engineer"
+                      value={jobContext.role || ''}
+                      onChange={(e) => setJobContext(prev => ({
+                        ...prev,
+                        role: e.target.value
+                      }))}
+                    />
+                    <Textarea
+                      label="Job Description"
+                      placeholder="Enter job description for targeted analysis..."
+                      value={jobContext.description || ''}
+                      onChange={(e) => setJobContext(prev => ({
+                        ...prev,
+                        description: e.target.value
+                      }))}
+                      minRows={1}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Features Section */}
