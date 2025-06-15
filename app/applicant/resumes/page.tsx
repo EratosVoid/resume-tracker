@@ -32,6 +32,7 @@ interface ResumeVersion {
   rawFileURL?: string;
   fileName?: string;
   fileType?: string;
+  shareableId?: string;
   atsScores: Array<{
     jobId: string;
     jobTitle: string;
@@ -52,7 +53,7 @@ export default function ApplicantResumesPage() {
     totalResumes: 0,
     averageScore: 0,
     latestScore: 0,
-    improvementTrend: 0,
+    improvement: 0,
   });
 
   const fetchResumeData = async () => {
@@ -93,15 +94,14 @@ export default function ApplicantResumesPage() {
 
       const latestScore = allScores.length > 0 ? allScores[0] : 0;
 
-      // Calculate improvement trend (compare latest vs previous)
-      const improvementTrend =
-        allScores.length > 1 ? allScores[0] - allScores[1] : 0;
+      // Use improvement from API data
+      const improvement = data.stats.improvement || 0;
 
       setStats({
         totalResumes,
         averageScore,
         latestScore,
-        improvementTrend,
+        improvement: data.stats.improvement || 0,
       });
     } catch (error) {
       console.error("Error fetching resume data:", error);
@@ -219,7 +219,7 @@ export default function ApplicantResumesPage() {
 
           <Card
             className={`bg-gradient-to-br ${
-              stats.improvementTrend >= 0
+              stats.improvement >= 0
                 ? "from-green-500/5 to-green-500/10"
                 : "from-red-500/5 to-red-500/10"
             }`}
@@ -227,14 +227,12 @@ export default function ApplicantResumesPage() {
             <CardBody className="text-center p-6">
               <div
                 className={`p-3 rounded-full w-fit mx-auto mb-3 ${
-                  stats.improvementTrend >= 0
-                    ? "bg-green-500/20"
-                    : "bg-red-500/20"
+                  stats.improvement >= 0 ? "bg-green-500/20" : "bg-red-500/20"
                 }`}
               >
                 <TrendingUpIcon
                   className={`h-6 w-6 ${
-                    stats.improvementTrend >= 0
+                    stats.improvement >= 0
                       ? "text-green-600"
                       : "text-red-600 rotate-180"
                   }`}
@@ -242,13 +240,11 @@ export default function ApplicantResumesPage() {
               </div>
               <div
                 className={`text-3xl font-bold mb-1 ${
-                  stats.improvementTrend >= 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                  stats.improvement >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {stats.improvementTrend > 0 ? "+" : ""}
-                {stats.improvementTrend}%
+                {stats.improvement > 0 ? "+" : ""}
+                {stats.improvement}%
               </div>
               <div className="text-sm text-default-600">Improvement</div>
             </CardBody>

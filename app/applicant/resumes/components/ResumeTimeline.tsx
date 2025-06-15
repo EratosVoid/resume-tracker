@@ -14,6 +14,8 @@ import {
   BrainIcon,
   CheckCircleIcon,
   AlertCircleIcon,
+  ShareIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
 
 interface ResumeVersion {
@@ -22,6 +24,7 @@ interface ResumeVersion {
   rawFileURL?: string;
   fileName?: string;
   fileType?: string;
+  shareableId?: string;
   atsScores: Array<{
     jobId: string;
     jobTitle: string;
@@ -73,6 +76,11 @@ export default function ResumeTimeline({
     return atsScores.reduce((highest, current) =>
       current.score > highest.score ? current : highest
     );
+  };
+
+  const handleViewShareLink = (shareableId: string) => {
+    const shareUrl = `${window.location.origin}/resume/share/${shareableId}`;
+    window.open(shareUrl, "_blank");
   };
 
   const containerVariants = {
@@ -190,6 +198,16 @@ export default function ResumeTimeline({
                                 ? "Uploaded"
                                 : "Created"}
                             </Chip>
+                            {resume.shareableId && (
+                              <Chip
+                                size="sm"
+                                color="success"
+                                variant="flat"
+                                startContent={<ShareIcon className="h-3 w-3" />}
+                              >
+                                Public
+                              </Chip>
+                            )}
                           </div>
                           <div className="flex items-center gap-2 text-sm text-default-600">
                             <CalendarIcon className="h-4 w-4" />
@@ -292,6 +310,21 @@ export default function ResumeTimeline({
 
                     {/* Actions */}
                     <div className="flex flex-wrap gap-3 pt-4 border-t border-default-200">
+                      {resume.shareableId && (
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          color="success"
+                          startContent={
+                            <ExternalLinkIcon className="h-4 w-4" />
+                          }
+                          onPress={() =>
+                            handleViewShareLink(resume.shareableId!)
+                          }
+                        >
+                          View Share Link
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="flat"

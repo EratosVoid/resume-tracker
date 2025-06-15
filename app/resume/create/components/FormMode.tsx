@@ -412,19 +412,11 @@ export default function FormMode({
                         key={index}
                         className="p-4 border-l-4 border-l-primary"
                       >
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold text-lg">
-                                {exp.title}
-                              </h4>
-                              <p className="text-primary font-medium">
-                                {exp.company}
-                              </p>
-                              <p className="text-sm text-default-500">
-                                {exp.startDate} - {exp.endDate}
-                              </p>
-                            </div>
+                            <h4 className="font-semibold text-lg">
+                              Work Experience #{index + 1}
+                            </h4>
                             <Button
                               size="sm"
                               color="danger"
@@ -442,20 +434,143 @@ export default function FormMode({
                               Remove
                             </Button>
                           </div>
-                          <p className="text-default-700">{exp.description}</p>
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium text-default-600">
-                              Key Achievements:
-                            </p>
-                            {exp.achievements.map((achievement, achIndex) => (
-                              <div
-                                key={achIndex}
-                                className="flex items-center gap-2"
-                              >
-                                <CheckCircleIcon className="h-4 w-4 text-success" />
-                                <span className="text-sm">{achievement}</span>
-                              </div>
-                            ))}
+
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <Input
+                              label="Job Title"
+                              placeholder="e.g., Software Engineer"
+                              value={exp.title}
+                              onChange={(e) => {
+                                const newExp = [...formData.workExperience];
+                                newExp[index] = {
+                                  ...newExp[index],
+                                  title: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  workExperience: newExp,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Company"
+                              placeholder="e.g., Google"
+                              value={exp.company}
+                              onChange={(e) => {
+                                const newExp = [...formData.workExperience];
+                                newExp[index] = {
+                                  ...newExp[index],
+                                  company: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  workExperience: newExp,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Start Date"
+                              placeholder="e.g., Jan 2022"
+                              value={exp.startDate}
+                              onChange={(e) => {
+                                const newExp = [...formData.workExperience];
+                                newExp[index] = {
+                                  ...newExp[index],
+                                  startDate: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  workExperience: newExp,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="End Date"
+                              placeholder="e.g., Present or Dec 2023"
+                              value={exp.endDate}
+                              onChange={(e) => {
+                                const newExp = [...formData.workExperience];
+                                newExp[index] = {
+                                  ...newExp[index],
+                                  endDate: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  workExperience: newExp,
+                                }));
+                              }}
+                            />
+                          </div>
+
+                          <Textarea
+                            label="Job Description"
+                            placeholder="Describe your role and responsibilities..."
+                            value={exp.description}
+                            onChange={(e) => {
+                              const newExp = [...formData.workExperience];
+                              newExp[index] = {
+                                ...newExp[index],
+                                description: e.target.value,
+                              };
+                              setFormData((prev) => ({
+                                ...prev,
+                                workExperience: newExp,
+                              }));
+                            }}
+                            minRows={3}
+                          />
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Key Achievements (press Enter to add)
+                            </label>
+                            <Input
+                              placeholder="e.g., Increased sales by 20%"
+                              onKeyPress={(e) => {
+                                const target = e.target as HTMLInputElement;
+                                if (e.key === "Enter" && target.value.trim()) {
+                                  const newExp = [...formData.workExperience];
+                                  newExp[index] = {
+                                    ...newExp[index],
+                                    achievements: [
+                                      ...newExp[index].achievements,
+                                      target.value.trim(),
+                                    ],
+                                  };
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    workExperience: newExp,
+                                  }));
+                                  target.value = "";
+                                }
+                              }}
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {exp.achievements.map((achievement, achIndex) => (
+                                <Chip
+                                  key={achIndex}
+                                  onClose={() => {
+                                    const newExp = [...formData.workExperience];
+                                    newExp[index] = {
+                                      ...newExp[index],
+                                      achievements: newExp[
+                                        index
+                                      ].achievements.filter(
+                                        (_, i) => i !== achIndex
+                                      ),
+                                    };
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      workExperience: newExp,
+                                    }));
+                                  }}
+                                  variant="flat"
+                                  color="primary"
+                                >
+                                  {achievement}
+                                </Chip>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </Card>
@@ -514,33 +629,11 @@ export default function FormMode({
                         key={index}
                         className="p-4 border-l-4 border-l-secondary"
                       >
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold text-lg">
-                                {edu.degree} in {edu.field}
-                              </h4>
-                              <p className="text-secondary font-medium">
-                                {edu.school}
-                              </p>
-                              <p className="text-sm text-default-500">
-                                Graduated: {edu.graduationYear}
-                              </p>
-                              {edu.gpa && (
-                                <p className="text-sm text-default-600">
-                                  GPA: {edu.gpa}
-                                </p>
-                              )}
-                              {edu.honors && (
-                                <Badge
-                                  color="success"
-                                  variant="flat"
-                                  className="mt-1"
-                                >
-                                  {edu.honors}
-                                </Badge>
-                              )}
-                            </div>
+                            <h4 className="font-semibold text-lg">
+                              Education #{index + 1}
+                            </h4>
                             <Button
                               size="sm"
                               color="danger"
@@ -557,6 +650,105 @@ export default function FormMode({
                             >
                               Remove
                             </Button>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <Input
+                              label="School/University"
+                              placeholder="e.g., Stanford University"
+                              value={edu.school}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education];
+                                newEdu[index] = {
+                                  ...newEdu[index],
+                                  school: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  education: newEdu,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Degree"
+                              placeholder="e.g., Bachelor of Science"
+                              value={edu.degree}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education];
+                                newEdu[index] = {
+                                  ...newEdu[index],
+                                  degree: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  education: newEdu,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Field of Study"
+                              placeholder="e.g., Computer Science"
+                              value={edu.field}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education];
+                                newEdu[index] = {
+                                  ...newEdu[index],
+                                  field: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  education: newEdu,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Graduation Year"
+                              placeholder="e.g., 2023"
+                              value={edu.graduationYear}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education];
+                                newEdu[index] = {
+                                  ...newEdu[index],
+                                  graduationYear: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  education: newEdu,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="GPA (optional)"
+                              placeholder="e.g., 3.8/4.0"
+                              value={edu.gpa || ""}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education];
+                                newEdu[index] = {
+                                  ...newEdu[index],
+                                  gpa: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  education: newEdu,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Honors (optional)"
+                              placeholder="e.g., Magna Cum Laude"
+                              value={edu.honors || ""}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education];
+                                newEdu[index] = {
+                                  ...newEdu[index],
+                                  honors: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  education: newEdu,
+                                }));
+                              }}
+                            />
                           </div>
                         </div>
                       </Card>
@@ -615,74 +807,11 @@ export default function FormMode({
                         key={index}
                         className="p-4 border-l-4 border-l-success"
                       >
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-lg">
-                                {project.name}
-                              </h4>
-                              <p className="text-default-700 mt-1">
-                                {project.description}
-                              </p>
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {project.technologies.map((tech, techIndex) => (
-                                  <Chip
-                                    key={techIndex}
-                                    size="sm"
-                                    color="success"
-                                    variant="flat"
-                                  >
-                                    {tech}
-                                  </Chip>
-                                ))}
-                              </div>
-                              {(project.link || project.github) && (
-                                <div className="flex gap-2 mt-2">
-                                  {project.link && (
-                                    <Button
-                                      size="sm"
-                                      variant="light"
-                                      color="success"
-                                      startContent={
-                                        <ExternalLinkIcon className="h-3 w-3" />
-                                      }
-                                    >
-                                      Live Demo
-                                    </Button>
-                                  )}
-                                  {project.github && (
-                                    <Button
-                                      size="sm"
-                                      variant="light"
-                                      color="success"
-                                      startContent={
-                                        <GithubIcon className="h-3 w-3" />
-                                      }
-                                    >
-                                      GitHub
-                                    </Button>
-                                  )}
-                                </div>
-                              )}
-                              <div className="space-y-1 mt-3">
-                                <p className="text-sm font-medium text-default-600">
-                                  Key Results:
-                                </p>
-                                {project.achievements.map(
-                                  (achievement, achIndex) => (
-                                    <div
-                                      key={achIndex}
-                                      className="flex items-center gap-2"
-                                    >
-                                      <CheckCircleIcon className="h-4 w-4 text-success" />
-                                      <span className="text-sm">
-                                        {achievement}
-                                      </span>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
+                            <h4 className="font-semibold text-lg">
+                              Project #{index + 1}
+                            </h4>
                             <Button
                               size="sm"
                               color="danger"
@@ -699,6 +828,186 @@ export default function FormMode({
                             >
                               Remove
                             </Button>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <Input
+                              label="Project Name"
+                              placeholder="e.g., E-commerce Web App"
+                              value={project.name}
+                              onChange={(e) => {
+                                const newProjects = [...formData.projects];
+                                newProjects[index] = {
+                                  ...newProjects[index],
+                                  name: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  projects: newProjects,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Live Demo URL (optional)"
+                              placeholder="https://myproject.com"
+                              value={project.link || ""}
+                              onChange={(e) => {
+                                const newProjects = [...formData.projects];
+                                newProjects[index] = {
+                                  ...newProjects[index],
+                                  link: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  projects: newProjects,
+                                }));
+                              }}
+                            />
+                          </div>
+
+                          <Textarea
+                            label="Project Description"
+                            placeholder="Describe what the project does and your role..."
+                            value={project.description}
+                            onChange={(e) => {
+                              const newProjects = [...formData.projects];
+                              newProjects[index] = {
+                                ...newProjects[index],
+                                description: e.target.value,
+                              };
+                              setFormData((prev) => ({
+                                ...prev,
+                                projects: newProjects,
+                              }));
+                            }}
+                            minRows={3}
+                          />
+
+                          <Input
+                            label="GitHub URL (optional)"
+                            placeholder="https://github.com/username/project"
+                            value={project.github || ""}
+                            onChange={(e) => {
+                              const newProjects = [...formData.projects];
+                              newProjects[index] = {
+                                ...newProjects[index],
+                                github: e.target.value,
+                              };
+                              setFormData((prev) => ({
+                                ...prev,
+                                projects: newProjects,
+                              }));
+                            }}
+                          />
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Technologies Used (press Enter to add)
+                            </label>
+                            <Input
+                              placeholder="e.g., React, Node.js, MongoDB"
+                              onKeyPress={(e) => {
+                                const target = e.target as HTMLInputElement;
+                                if (e.key === "Enter" && target.value.trim()) {
+                                  const newProjects = [...formData.projects];
+                                  newProjects[index] = {
+                                    ...newProjects[index],
+                                    technologies: [
+                                      ...newProjects[index].technologies,
+                                      target.value.trim(),
+                                    ],
+                                  };
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    projects: newProjects,
+                                  }));
+                                  target.value = "";
+                                }
+                              }}
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {project.technologies.map((tech, techIndex) => (
+                                <Chip
+                                  key={techIndex}
+                                  onClose={() => {
+                                    const newProjects = [...formData.projects];
+                                    newProjects[index] = {
+                                      ...newProjects[index],
+                                      technologies: newProjects[
+                                        index
+                                      ].technologies.filter(
+                                        (_, i) => i !== techIndex
+                                      ),
+                                    };
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      projects: newProjects,
+                                    }));
+                                  }}
+                                  variant="flat"
+                                  color="success"
+                                >
+                                  {tech}
+                                </Chip>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              Key Results/Achievements (press Enter to add)
+                            </label>
+                            <Input
+                              placeholder="e.g., Achieved 99% uptime, 500+ users"
+                              onKeyPress={(e) => {
+                                const target = e.target as HTMLInputElement;
+                                if (e.key === "Enter" && target.value.trim()) {
+                                  const newProjects = [...formData.projects];
+                                  newProjects[index] = {
+                                    ...newProjects[index],
+                                    achievements: [
+                                      ...newProjects[index].achievements,
+                                      target.value.trim(),
+                                    ],
+                                  };
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    projects: newProjects,
+                                  }));
+                                  target.value = "";
+                                }
+                              }}
+                            />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {project.achievements.map(
+                                (achievement, achIndex) => (
+                                  <Chip
+                                    key={achIndex}
+                                    onClose={() => {
+                                      const newProjects = [
+                                        ...formData.projects,
+                                      ];
+                                      newProjects[index] = {
+                                        ...newProjects[index],
+                                        achievements: newProjects[
+                                          index
+                                        ].achievements.filter(
+                                          (_, i) => i !== achIndex
+                                        ),
+                                      };
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        projects: newProjects,
+                                      }));
+                                    }}
+                                    variant="flat"
+                                    color="primary"
+                                  >
+                                    {achievement}
+                                  </Chip>
+                                )
+                              )}
+                            </div>
                           </div>
                         </div>
                       </Card>
@@ -759,27 +1068,11 @@ export default function FormMode({
                         key={index}
                         className="p-4 border-l-4 border-l-warning"
                       >
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold text-lg">
-                                {achievement.title}
-                              </h4>
-                              <p className="text-default-700 mt-1">
-                                {achievement.description}
-                              </p>
-                              <p className="text-sm text-default-500 mt-1">
-                                Date: {achievement.date}
-                              </p>
-                              {achievement.proof && (
-                                <div className="flex items-center gap-2 mt-2">
-                                  <CheckCircleIcon className="h-4 w-4 text-success" />
-                                  <span className="text-sm text-success">
-                                    Proof available
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                            <h4 className="font-semibold text-lg">
+                              Achievement #{index + 1}
+                            </h4>
                             <Button
                               size="sm"
                               color="danger"
@@ -797,6 +1090,84 @@ export default function FormMode({
                             >
                               Remove
                             </Button>
+                          </div>
+
+                          <Input
+                            label="Achievement Title"
+                            placeholder="e.g., Employee of the Year"
+                            value={achievement.title}
+                            onChange={(e) => {
+                              const newAchievements = [
+                                ...formData.achievements,
+                              ];
+                              newAchievements[index] = {
+                                ...newAchievements[index],
+                                title: e.target.value,
+                              };
+                              setFormData((prev) => ({
+                                ...prev,
+                                achievements: newAchievements,
+                              }));
+                            }}
+                          />
+
+                          <Textarea
+                            label="Description"
+                            placeholder="Describe the achievement and its significance..."
+                            value={achievement.description}
+                            onChange={(e) => {
+                              const newAchievements = [
+                                ...formData.achievements,
+                              ];
+                              newAchievements[index] = {
+                                ...newAchievements[index],
+                                description: e.target.value,
+                              };
+                              setFormData((prev) => ({
+                                ...prev,
+                                achievements: newAchievements,
+                              }));
+                            }}
+                            minRows={3}
+                          />
+
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <Input
+                              label="Date"
+                              placeholder="e.g., Jan 2023"
+                              value={achievement.date}
+                              onChange={(e) => {
+                                const newAchievements = [
+                                  ...formData.achievements,
+                                ];
+                                newAchievements[index] = {
+                                  ...newAchievements[index],
+                                  date: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  achievements: newAchievements,
+                                }));
+                              }}
+                            />
+                            <Input
+                              label="Proof/Link (optional)"
+                              placeholder="Certificate URL or reference"
+                              value={achievement.proof || ""}
+                              onChange={(e) => {
+                                const newAchievements = [
+                                  ...formData.achievements,
+                                ];
+                                newAchievements[index] = {
+                                  ...newAchievements[index],
+                                  proof: e.target.value,
+                                };
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  achievements: newAchievements,
+                                }));
+                              }}
+                            />
                           </div>
                         </div>
                       </Card>

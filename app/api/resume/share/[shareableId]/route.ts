@@ -39,14 +39,6 @@ export async function GET(
       );
     }
 
-    // Check if the resume is public or if it's accessible
-    if (!resumeVersion.isPublic) {
-      return NextResponse.json(
-        { error: "This resume is not publicly accessible" },
-        { status: 403 }
-      );
-    }
-
     // Return the resume data
     return NextResponse.json({
       success: true,

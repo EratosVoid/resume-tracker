@@ -31,6 +31,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Update user scores before returning dashboard data
+    try {
+      await (User as any).updateUserScores((user as any)._id.toString());
+      console.log(`Updated user scores for dashboard: ${(user as any)._id}`);
+    } catch (error) {
+      console.error("Error updating user scores for dashboard:", error);
+    }
+
     // Find resume profile by userId
     let resume = await Resume.findOne({
       userId: user._id,
@@ -67,29 +75,14 @@ export async function GET(request: NextRequest) {
     // Calculate stats
     const resumeVersions = resume.resumeVersions || [];
     const totalResumes = resumeVersions.length;
-
-    // Calculate average ATS score across all resume versions and applications
-    let totalScores = 0;
-    let scoreCount = 0;
-
-    resumeVersions.forEach((resume: any) => {
-      resume.atsScores.forEach((score: any) => {
-        totalScores += score.score;
-        scoreCount++;
-      });
-    });
-
-    submissions.forEach((submission: any) => {
-      if (submission.atsScore) {
-        totalScores += submission.atsScore;
-        scoreCount++;
-      }
-    });
-
-    const averageScore =
-      scoreCount > 0 ? Math.round(totalScores / scoreCount) : 0;
     const totalApplications = submissions.length;
     const responseRate = 0; // This would need to be calculated based on recruiter responses
+
+    // Get updated user data to get the calculated scores
+    const updatedUser = await User.findById((user as any)._id);
+    const averageScore = updatedUser?.averageScore || 0;
+    const latestScore = updatedUser?.latestScore || 0;
+    const improvement = updatedUser?.improvement || 0;
 
     // Transform resume versions for frontend
     const transformedResumeVersions = resumeVersions.map((resume: any) => ({
@@ -126,6 +119,8 @@ export async function GET(request: NextRequest) {
       stats: {
         totalResumes,
         averageScore,
+        latestScore,
+        improvement,
         totalApplications,
         responseRate,
       },
@@ -150,7 +145,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { resumeData, atsScore, jobId } = body;
+    const { resumeData, atsScore, jobId, creationMode } = body;
 
     await connectDB();
 
@@ -188,6 +183,8 @@ export async function POST(request: NextRequest) {
       rawFileURL: resumeData.rawFileURL,
       fileName: resumeData.fileName,
       fileType: resumeData.fileType,
+      atsScore: atsScore || 0, // Add direct atsScore field
+      creationMode: creationMode || "manual", // Add creation mode (upload, manual, etc.)
       atsScores: [],
       createdAt: new Date(),
     };
@@ -213,6 +210,16 @@ export async function POST(request: NextRequest) {
 
     resume.resumeVersions.push(newResumeVersion);
     await resume.save();
+
+    // Update user scores after saving resume
+    try {
+      await (User as any).updateUserScores((user as any)._id.toString());
+      console.log(
+        `Updated user scores after saving resume: ${(user as any)._id}`
+      );
+    } catch (error) {
+      console.error("Error updating user scores after saving resume:", error);
+    }
 
     return NextResponse.json({
       success: true,

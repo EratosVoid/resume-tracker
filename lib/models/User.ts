@@ -25,7 +25,7 @@ export interface IUser extends Document {
   // Score tracking
   averageScore: number; // Average of all ATS scores across resume versions
   latestScore: number; // Most recent ATS score
-  improvement: number; // Random number between -10 to 10 representing improvement trend
+  improvement: number; // Difference between latest and previous resume scores
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -98,8 +98,8 @@ const UserSchema = new Schema<IUser>(
     improvement: {
       type: Number,
       default: 0,
-      min: -10,
-      max: 10,
+      min: -100, // Allow full range of score differences
+      max: 100,
     },
   },
   {
@@ -169,6 +169,8 @@ UserSchema.statics.updateUserScores = async function (userId: string) {
     const Resume = mongoose.model("Resume");
     const Submission = mongoose.model("Submission");
 
+    console.log(`Updating scores for user: ${userId}`);
+
     // Find user's resume profile
     const resume = await Resume.findOne({ userId });
 
@@ -179,13 +181,29 @@ UserSchema.statics.updateUserScores = async function (userId: string) {
     let scoredEntries: { score: number; createdAt: Date }[] = [];
 
     if (resume && resume.resumeVersions) {
+      console.log(`Found resume with ${resume.resumeVersions.length} versions`);
+
       resume.resumeVersions.forEach((version: any) => {
+        // Check for direct atsScore on the version
+        if (version.atsScore && version.atsScore > 0) {
+          scoredEntries.push({
+            score: version.atsScore,
+            createdAt: version.createdAt || new Date(),
+          });
+          console.log(`Added version score: ${version.atsScore}`);
+        }
+
+        // Also check atsScores array
         if (version.atsScores && version.atsScores.length > 0) {
           version.atsScores.forEach((atsScore: any) => {
-            scoredEntries.push({
-              score: atsScore.score,
-              createdAt: atsScore.createdAt || version.createdAt || new Date(),
-            });
+            if (atsScore.score && atsScore.score > 0) {
+              scoredEntries.push({
+                score: atsScore.score,
+                createdAt:
+                  atsScore.createdAt || version.createdAt || new Date(),
+              });
+              console.log(`Added atsScore: ${atsScore.score}`);
+            }
           });
         }
       });
@@ -196,13 +214,17 @@ UserSchema.statics.updateUserScores = async function (userId: string) {
       userId,
       isAnonymous: false,
     }).sort({ createdAt: -1 });
+
+    console.log(`Found ${submissions.length} submissions`);
+
     submissions.forEach((submission: any) => {
-      if (submission.atsScore) {
+      if (submission.atsScore && submission.atsScore > 0) {
         scoredEntries.push({
           score: submission.atsScore,
           createdAt:
             submission.createdAt || submission.submittedAt || new Date(),
         });
+        console.log(`Added submission score: ${submission.atsScore}`);
       }
     });
 
@@ -212,6 +234,8 @@ UserSchema.statics.updateUserScores = async function (userId: string) {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     allScores = scoredEntries.map((entry) => entry.score);
+
+    console.log(`Total scores found: ${allScores.length}`, allScores);
 
     // Calculate latest score (most recent)
     if (allScores.length > 0) {
@@ -226,8 +250,55 @@ UserSchema.statics.updateUserScores = async function (userId: string) {
           )
         : 0;
 
-    // Generate random improvement between -10 and 10
-    const improvement = Math.floor(Math.random() * 21) - 10; // -10 to 10
+    // Calculate improvement trend (compare latest vs previous resume scores only)
+    let improvement = 0;
+
+    // Get scores from resume versions only (not submissions) for improvement calculation
+    let resumeScores: { score: number; createdAt: Date }[] = [];
+
+    if (resume && resume.resumeVersions) {
+      resume.resumeVersions.forEach((version: any) => {
+        let versionScore = 0;
+
+        // Prefer atsScores array if it exists and has scores
+        if (version.atsScores && version.atsScores.length > 0) {
+          const validScores = version.atsScores
+            .map((s: any) => s.score || 0)
+            .filter((s: number) => s > 0);
+          if (validScores.length > 0) {
+            versionScore = Math.max(...validScores); // Take highest score from this version
+          }
+        }
+
+        // Fallback to direct atsScore if no atsScores array
+        if (versionScore === 0 && version.atsScore && version.atsScore > 0) {
+          versionScore = version.atsScore;
+        }
+
+        // Add to resume scores if we found a valid score
+        if (versionScore > 0) {
+          resumeScores.push({
+            score: versionScore,
+            createdAt: version.createdAt || new Date(),
+          });
+          console.log(`Added resume version score: ${versionScore}`);
+        }
+      });
+    }
+
+    // Sort resume scores by creation date (newest first)
+    resumeScores.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    // Calculate improvement between last 2 resume versions
+    if (resumeScores.length > 1) {
+      improvement = resumeScores[0].score - resumeScores[1].score; // Latest resume - Previous resume
+      console.log(
+        `Improvement calculation: ${resumeScores[0].score} - ${resumeScores[1].score} = ${improvement}`
+      );
+    }
 
     // Update user with calculated scores
     await this.findByIdAndUpdate(userId, {

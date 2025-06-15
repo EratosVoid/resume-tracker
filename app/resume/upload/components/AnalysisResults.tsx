@@ -66,20 +66,24 @@ export default function AnalysisResults({
   fileName,
   onStartOver,
 }: AnalysisResultsProps) {
-// Add scoring weights
+  // Add scoring weights
   const sectionWeights = {
     formatting: 0.15,
-    content: 0.20,
+    content: 0.2,
     keywords: 0.25,
     atsCompatibility: 0.15,
     experience: 0.15,
-    education: 0.10
+    education: 0.1,
   };
 
   // Calculate weighted score
   const calculateWeightedScore = () => {
     return Object.entries(analysis.sections).reduce((total, [key, section]) => {
-      return total + (section.score * (sectionWeights[key as keyof typeof sectionWeights] || 0));
+      return (
+        total +
+        section.score *
+          (sectionWeights[key as keyof typeof sectionWeights] || 0)
+      );
     }, 0);
   };
 
@@ -87,9 +91,9 @@ export default function AnalysisResults({
     const calculatedScore = calculateWeightedScore();
     // Verify if calculated score matches the overall score
     if (Math.abs(calculatedScore - analysis.overallScore) > 1) {
-      console.warn('Score calculation mismatch:', {
+      console.warn("Score calculation mismatch:", {
         calculated: calculatedScore,
-        reported: analysis.overallScore
+        reported: analysis.overallScore,
       });
     }
   }, [analysis]);
@@ -131,6 +135,7 @@ export default function AnalysisResults({
               : 0,
           },
           atsScore: analysis.overallScore,
+          creationMode: "upload", // Add creation mode for uploaded resumes
         }),
       });
 
@@ -227,38 +232,131 @@ export default function AnalysisResults({
       <motion.div variants={itemVariants}>
         <Card>
           <CardHeader>
-            <h2 className="text-xl font-semibold">Extracted Information</h2>
+            <div className="flex items-center gap-2">
+              <UserIcon className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold">Extracted Information</h2>
+            </div>
           </CardHeader>
           <CardBody>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-default-600 mb-1">Name</p>
-                  <p className="font-medium">
-                    {analysis.extractedInfo.name || "Not found"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-default-600 mb-1">Email</p>
-                  <p className="font-medium">
-                    {analysis.extractedInfo.email || "Not found"}
-                  </p>
+            <div className="space-y-8">
+              {/* Contact Information */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-primary">
+                  Contact Details
+                </h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-default-600 mb-1">Full Name</p>
+                      <p className="font-medium">
+                        {analysis.extractedInfo.name || "Not found"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-default-600 mb-1">
+                        Email Address
+                      </p>
+                      <p className="font-medium">
+                        {analysis.extractedInfo.email || "Not found"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-default-600 mb-1">
+                        Phone Number
+                      </p>
+                      <p className="font-medium">
+                        {analysis.extractedInfo.phone || "Not found"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-default-600 mb-1">Location</p>
+                      <p className="font-medium">
+                        {analysis.extractedInfo.location || "Not found"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-default-600 mb-1">Phone</p>
-                  <p className="font-medium">
-                    {analysis.extractedInfo.phone || "Not found"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-default-600 mb-1">Location</p>
-                  <p className="font-medium">
-                    {analysis.extractedInfo.location || "Not found"}
-                  </p>
-                </div>
-              </div>
+
+              <Divider />
+
+              {/* Professional Summary */}
+              {analysis.extractedInfo.summary && (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-secondary">
+                      Professional Summary
+                    </h3>
+                    <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/20">
+                      <p className="text-default-700 leading-relaxed">
+                        {analysis.extractedInfo.summary}
+                      </p>
+                    </div>
+                  </div>
+                  <Divider />
+                </>
+              )}
+
+              {/* Experience */}
+              {analysis.extractedInfo.experience && (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-success">
+                      Work Experience
+                    </h3>
+                    <div className="p-4 bg-success/5 rounded-lg border border-success/20">
+                      <p className="text-default-700 leading-relaxed whitespace-pre-line">
+                        {analysis.extractedInfo.experience}
+                      </p>
+                    </div>
+                  </div>
+                  <Divider />
+                </>
+              )}
+
+              {/* Education */}
+              {analysis.extractedInfo.education && (
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-warning">
+                      Education
+                    </h3>
+                    <div className="p-4 bg-warning/5 rounded-lg border border-warning/20">
+                      <p className="text-default-700 leading-relaxed whitespace-pre-line">
+                        {analysis.extractedInfo.education}
+                      </p>
+                    </div>
+                  </div>
+                  <Divider />
+                </>
+              )}
+
+              {/* Skills */}
+              {analysis.extractedInfo.skills &&
+                analysis.extractedInfo.skills.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-danger">
+                      Technical Skills
+                    </h3>
+                    <div className="p-4 bg-danger/5 rounded-lg border border-danger/20">
+                      <div className="flex flex-wrap gap-2">
+                        {analysis.extractedInfo.skills.map((skill, index) => (
+                          <Chip
+                            key={index}
+                            color="danger"
+                            variant="flat"
+                            size="sm"
+                            className="font-medium"
+                          >
+                            {skill}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
             </div>
           </CardBody>
         </Card>
@@ -293,26 +391,26 @@ export default function AnalysisResults({
           <CardBody>
             <div className="grid md:grid-cols-2 gap-4">
               {Object.entries(analysis.sections).map(([key, section]) => (
-              <div
-                key={key}
-                className="p-4 bg-default-50 rounded-lg border border-default-200"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold capitalize">
-                    {key.replace(/([A-Z])/g, " $1").trim()}
-                  </h3>
-                  <Chip
-                    color={getScoreColor(section.score)}
-                    variant="flat"
-                    size="sm"
-                    className="font-semibold"
-                  >
-                    {section.score}%
-                  </Chip>
+                <div
+                  key={key}
+                  className="p-4 bg-default-50 rounded-lg border border-default-200"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold capitalize">
+                      {key.replace(/([A-Z])/g, " $1").trim()}
+                    </h3>
+                    <Chip
+                      color={getScoreColor(section.score)}
+                      variant="flat"
+                      size="sm"
+                      className="font-semibold"
+                    >
+                      {section.score}%
+                    </Chip>
+                  </div>
+                  <p className="text-sm text-default-600">{section.feedback}</p>
                 </div>
-                <p className="text-sm text-default-600">{section.feedback}</p>
-              </div>
-            ))}
+              ))}
             </div>
           </CardBody>
         </Card>

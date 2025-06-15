@@ -2,70 +2,70 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IATSScore {
   jobId?: mongoose.Types.ObjectId;
-  score: number;
-  keywordsMatched: string[];
-  skillsMatched: string[];
-  experienceYears: number;
-  createdAt: Date;
+  score?: number;
+  keywordsMatched?: string[];
+  skillsMatched?: string[];
+  experienceYears?: number;
+  createdAt?: Date;
 }
 
 export interface IPersonalInfo {
-  fullName: string;
-  email: string;
-  phone: string;
-  location: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
   linkedin?: string;
   portfolio?: string;
 }
 
 export interface ISkill {
-  name: string;
+  name?: string;
   proof?: string;
-  validated: boolean;
+  validated?: boolean;
 }
 
 export interface IWorkExperience {
-  company: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  achievements: string[];
+  company?: string;
+  title?: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+  achievements?: string[];
 }
 
 export interface IEducation {
-  school: string;
-  degree: string;
-  field: string;
-  graduationYear: string;
+  school?: string;
+  degree?: string;
+  field?: string;
+  graduationYear?: string;
   gpa?: string;
   honors?: string;
 }
 
 export interface IProject {
-  name: string;
-  description: string;
-  technologies: string[];
+  name?: string;
+  description?: string;
+  technologies?: string[];
   link?: string;
   github?: string;
-  achievements: string[];
+  achievements?: string[];
 }
 
 export interface IAchievement {
-  title: string;
-  description: string;
-  date: string;
+  title?: string;
+  description?: string;
+  date?: string;
   proof?: string;
 }
 
 export interface IGeneratedResume {
-  personalInfo: IPersonalInfo;
-  summary: string;
-  experience: IWorkExperience[];
-  education: IEducation[];
-  skills: string[];
-  projects: IProject[];
-  achievements: IAchievement[];
+  personalInfo?: IPersonalInfo;
+  summary?: string;
+  experience?: IWorkExperience[];
+  education?: IEducation[];
+  skills?: string[];
+  projects?: IProject[];
+  achievements?: IAchievement[];
 }
 
 export interface IResumeVersion {
@@ -77,14 +77,14 @@ export interface IResumeVersion {
 
   // New structured data for generated resumes
   structuredData?: {
-    personalInfo: IPersonalInfo;
-    targetRole: string;
-    experience: string;
-    skills: ISkill[];
-    workExperience: IWorkExperience[];
-    education: IEducation[];
-    projects: IProject[];
-    achievements: IAchievement[];
+    personalInfo?: IPersonalInfo;
+    targetRole?: string;
+    experience?: string;
+    skills?: ISkill[];
+    workExperience?: IWorkExperience[];
+    education?: IEducation[];
+    projects?: IProject[];
+    achievements?: IAchievement[];
   };
 
   // Generated resume content
@@ -111,41 +111,41 @@ export interface IResume extends Document {
 }
 
 const PersonalInfoSchema = new Schema<IPersonalInfo>({
-  fullName: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
-  location: { type: String, required: true },
+  fullName: { type: String, required: false },
+  email: { type: String, required: false },
+  phone: { type: String, required: false },
+  location: { type: String, required: false },
   linkedin: { type: String },
   portfolio: { type: String },
 });
 
 const SkillSchema = new Schema<ISkill>({
-  name: { type: String, required: true },
+  name: { type: String, required: false },
   proof: { type: String },
   validated: { type: Boolean, default: false },
 });
 
 const WorkExperienceSchema = new Schema<IWorkExperience>({
-  company: { type: String, required: true },
-  title: { type: String, required: true },
-  startDate: { type: String, required: true },
-  endDate: { type: String, required: true },
-  description: { type: String, required: true },
+  company: { type: String, required: false },
+  title: { type: String, required: false },
+  startDate: { type: String, required: false },
+  endDate: { type: String, required: false },
+  description: { type: String, required: false },
   achievements: [{ type: String }],
 });
 
 const EducationSchema = new Schema<IEducation>({
-  school: { type: String, required: true },
-  degree: { type: String, required: true },
-  field: { type: String, required: true },
-  graduationYear: { type: String, required: true },
+  school: { type: String, required: false },
+  degree: { type: String, required: false },
+  field: { type: String, required: false },
+  graduationYear: { type: String, required: false },
   gpa: { type: String },
   honors: { type: String },
 });
 
 const ProjectSchema = new Schema<IProject>({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
+  name: { type: String, required: false },
+  description: { type: String, required: false },
   technologies: [{ type: String }],
   link: { type: String },
   github: { type: String },
@@ -153,15 +153,15 @@ const ProjectSchema = new Schema<IProject>({
 });
 
 const AchievementSchema = new Schema<IAchievement>({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  date: { type: String, required: true },
+  title: { type: String, required: false },
+  description: { type: String, required: false },
+  date: { type: String, required: false },
   proof: { type: String },
 });
 
 const GeneratedResumeSchema = new Schema<IGeneratedResume>({
-  personalInfo: { type: PersonalInfoSchema, required: true },
-  summary: { type: String, required: true },
+  personalInfo: { type: PersonalInfoSchema, required: false },
+  summary: { type: String, required: false },
   experience: [WorkExperienceSchema],
   education: [EducationSchema],
   skills: [{ type: String }],
@@ -171,7 +171,7 @@ const GeneratedResumeSchema = new Schema<IGeneratedResume>({
 
 const ATSScoreSchema = new Schema<IATSScore>({
   jobId: { type: Schema.Types.ObjectId, ref: "Job" },
-  score: { type: Number, required: true, min: 0, max: 100 },
+  score: { type: Number, required: false, min: 0, max: 100, default: 0 },
   keywordsMatched: [{ type: String }],
   skillsMatched: [{ type: String }],
   experienceYears: { type: Number, default: 0 },

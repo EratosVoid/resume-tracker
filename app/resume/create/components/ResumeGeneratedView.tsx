@@ -167,27 +167,48 @@ export default function ResumeGeneratedView({
             </div>
 
             <div className="flex gap-3">
-              <Button
-                variant="bordered"
-                startContent={<SparklesIcon className="h-4 w-4" />}
-                onPress={onEdit}
-              >
-                Create New Resume
-              </Button>
-              <Button
-                variant="bordered"
-                startContent={<ShareIcon className="h-4 w-4" />}
-                onPress={handleShare}
-                isLoading={isSaving}
-              >
-                {saveResult?.shareUrl ? "Copy Link" : "Save & Share"}
-              </Button>
-              <Button
-                color="primary"
-                startContent={<DownloadIcon className="h-4 w-4" />}
-              >
-                Download PDF
-              </Button>
+              {session?.user ? (
+                <>
+                  <Button
+                    variant="bordered"
+                    startContent={<SparklesIcon className="h-4 w-4" />}
+                    onPress={onEdit}
+                  >
+                    Create New Resume
+                  </Button>
+                  <Button
+                    variant="bordered"
+                    startContent={<ShareIcon className="h-4 w-4" />}
+                    onPress={handleShare}
+                    isLoading={isSaving}
+                  >
+                    {saveResult?.shareUrl ? "Copy Link" : "Save & Share"}
+                  </Button>
+                  <Button
+                    color="primary"
+                    startContent={<DownloadIcon className="h-4 w-4" />}
+                  >
+                    Download PDF
+                  </Button>
+                </>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm text-default-600">
+                      Create an account to download and save your resume
+                    </p>
+                  </div>
+                  <Link href="/auth/register">
+                    <Button
+                      color="primary"
+                      size="lg"
+                      startContent={<UserIcon className="h-4 w-4" />}
+                    >
+                      Create Account
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -204,9 +225,27 @@ export default function ResumeGeneratedView({
                 </div>
               </CardHeader>
               <CardBody className="p-0">
-                <div className="bg-white dark:bg-gray-50 border rounded-lg min-h-[1000px] shadow-lg overflow-hidden">
+                <div className="bg-white dark:bg-gray-50 border rounded-lg min-h-[1000px] shadow-lg overflow-hidden relative">
+                  {/* Demo Mode Badge for non-logged-in users */}
+                  {!session?.user && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <Chip
+                        color="warning"
+                        variant="solid"
+                        size="sm"
+                        startContent={<UserIcon className="h-3 w-3" />}
+                      >
+                        Preview Mode
+                      </Chip>
+                    </div>
+                  )}
+
                   {/* Resume Paper */}
-                  <div className="max-w-[8.5in] mx-auto bg-white p-12 min-h-[11in] text-gray-900 font-serif leading-relaxed">
+                  <div
+                    className={`max-w-[8.5in] mx-auto bg-white p-12 min-h-[11in] text-gray-900 font-serif leading-relaxed ${
+                      !session?.user ? "opacity-90" : ""
+                    }`}
+                  >
                     {/* Header Section */}
                     <div className="text-center border-b-2 border-gray-300 pb-6 mb-8">
                       <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-wide">
@@ -630,24 +669,56 @@ export default function ResumeGeneratedView({
                   </div>
                 </CardHeader>
                 <CardBody>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <SparklesIcon className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                        <p className="text-sm">
-                          Download your resume and start applying to jobs
-                        </p>
+                  {session?.user ? (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <SparklesIcon className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <p className="text-sm">
+                            Download your resume and start applying to jobs
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <FileTextIcon className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
+                          <p className="text-sm">
+                            Create multiple resume versions for different roles
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <UserIcon className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
-                        <p className="text-sm">
-                          Create an account to save multiple resume versions
-                        </p>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-warning/5 border border-warning/20 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <UserIcon className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+                          <p className="text-sm">
+                            <strong>Create an account</strong> to unlock all
+                            features and download your resume
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <SparklesIcon className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <p className="text-sm">
+                            Save multiple resume versions and track your job
+                            applications
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <FileTextIcon className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
+                          <p className="text-sm">
+                            Get ATS optimization tips and improve your score
+                            over time
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </CardBody>
               </Card>
             </motion.div>
@@ -660,60 +731,127 @@ export default function ResumeGeneratedView({
             >
               <Card>
                 <CardBody className="space-y-3">
-                  <Button
-                    color="primary"
-                    className="w-full"
-                    size="lg"
-                    startContent={<DownloadIcon className="h-5 w-5" />}
-                  >
-                    Download as PDF
-                  </Button>
+                  {session?.user ? (
+                    <>
+                      <Button
+                        color="primary"
+                        className="w-full"
+                        size="lg"
+                        startContent={<DownloadIcon className="h-5 w-5" />}
+                      >
+                        Download as PDF
+                      </Button>
 
-                  <Button
-                    color="secondary"
-                    className="w-full"
-                    startContent={<SparklesIcon className="h-5 w-5" />}
-                    onPress={() => handleSaveResume(false)}
-                    isLoading={isSaving}
-                    isDisabled={saveResult?.success}
-                  >
-                    {saveResult?.success ? "Saved!" : "Save Resume"}
-                  </Button>
+                      <Button
+                        color="secondary"
+                        className="w-full"
+                        startContent={<SparklesIcon className="h-5 w-5" />}
+                        onPress={() => handleSaveResume(false)}
+                        isLoading={isSaving}
+                        isDisabled={saveResult?.success}
+                      >
+                        {saveResult?.success ? "Saved!" : "Save Resume"}
+                      </Button>
 
-                  <Button
-                    variant="bordered"
-                    className="w-full"
-                    startContent={<ShareIcon className="h-5 w-5" />}
-                    onPress={handleShare}
-                    isLoading={isSaving}
-                  >
-                    {saveResult?.shareUrl ? "Copy Share Link" : "Save & Share"}
-                  </Button>
+                      <Button
+                        variant="bordered"
+                        className="w-full"
+                        startContent={<ShareIcon className="h-5 w-5" />}
+                        onPress={handleShare}
+                        isLoading={isSaving}
+                      >
+                        {saveResult?.shareUrl
+                          ? "Copy Share Link"
+                          : "Save & Share"}
+                      </Button>
 
-                  {saveResult && (
-                    <div
-                      className={`p-3 rounded-lg text-sm ${
-                        saveResult.success
-                          ? "bg-success/10 text-success border border-success/20"
-                          : "bg-danger/10 text-danger border border-danger/20"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        {saveResult.success ? (
-                          <CheckCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        ) : (
-                          <span className="text-lg">⚠️</span>
-                        )}
-                        <div>
-                          <p>{saveResult.message}</p>
-                          {saveResult.shareUrl && (
-                            <p className="text-xs mt-1 opacity-80">
-                              Share URL copied to clipboard
-                            </p>
-                          )}
+                      {saveResult && (
+                        <div
+                          className={`p-3 rounded-lg text-sm ${
+                            saveResult.success
+                              ? "bg-success/10 text-success border border-success/20"
+                              : "bg-danger/10 text-danger border border-danger/20"
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            {saveResult.success ? (
+                              <CheckCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            ) : (
+                              <span className="text-lg">⚠️</span>
+                            )}
+                            <div>
+                              <p>{saveResult.message}</p>
+                              {saveResult.shareUrl && (
+                                <p className="text-xs mt-1 opacity-80">
+                                  Share URL copied to clipboard
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Disabled buttons for non-logged-in users */}
+                      <Button
+                        color="primary"
+                        className="w-full opacity-50"
+                        size="lg"
+                        startContent={<DownloadIcon className="h-5 w-5" />}
+                        isDisabled
+                      >
+                        Download as PDF
+                      </Button>
+
+                      <Button
+                        color="secondary"
+                        className="w-full opacity-50"
+                        startContent={<SparklesIcon className="h-5 w-5" />}
+                        isDisabled
+                      >
+                        Save Resume
+                      </Button>
+
+                      <Button
+                        variant="bordered"
+                        className="w-full opacity-50"
+                        startContent={<ShareIcon className="h-5 w-5" />}
+                        isDisabled
+                      >
+                        Save & Share
+                      </Button>
+
+                      {/* Call-to-action message */}
+                      <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <UserIcon className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
+                          <div className="space-y-3">
+                            <div>
+                              <h4 className="font-semibold text-warning">
+                                Account Required
+                              </h4>
+                              <p className="text-sm text-default-600 mt-1">
+                                Create a free account to download, save, and
+                                share your professional resume. You'll also be
+                                able to track your progress and create multiple
+                                resume versions.
+                              </p>
+                            </div>
+                            <Link href="/auth/register" className="block">
+                              <Button
+                                color="warning"
+                                className="w-full"
+                                size="lg"
+                                startContent={<UserIcon className="h-5 w-5" />}
+                              >
+                                Create Free Account
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </CardBody>
               </Card>

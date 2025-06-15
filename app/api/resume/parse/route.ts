@@ -7,14 +7,11 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const jobRole = formData.get('jobRole') as string;
-    const jobDescription = formData.get('jobDescription') as string;
+    const jobRole = formData.get("jobRole") as string;
+    const jobDescription = formData.get("jobDescription") as string;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     // Convert file to bytes for Gemini
@@ -26,8 +23,8 @@ export async function POST(request: NextRequest) {
 
     const jobContext = `
     JOB CONTEXT:
-    ${jobRole ? `Role: ${jobRole}\n` : ''}
-    ${jobDescription ? `Description: ${jobDescription}\n` : ''}`;
+    ${jobRole ? `Role: ${jobRole}\n` : ""}
+    ${jobDescription ? `Description: ${jobDescription}\n` : ""}`;
 
     console.log("Job Context:", jobContext);
 
@@ -92,6 +89,39 @@ export async function POST(request: NextRequest) {
     - Content structure optimization for automated screening systems
     - Resume length and section balance for optimal processing
     - Contact information standardization and accessibility
+
+    5. TONE ANALYSIS AND COMMUNICATION STYLE ASSESSMENT:
+    Evaluate the overall communication style and personality projection of the resume content. Analyze word choice, sentence structure, and presentation approach to determine the dominant tone category:
+
+    TONE CATEGORIES:
+    - PROFESSIONAL: Formal, corporate language with traditional business terminology. Conservative approach with emphasis on credentials and experience. Suitable for traditional industries like finance, law, consulting.
+    
+    - INFORMATIVE: Fact-based, data-driven presentation with clear, concise information delivery. Educational and straightforward approach focusing on skills and achievements. Ideal for technical roles, research positions, academic careers.
+    
+    - FRIENDLY: Warm, approachable language with personal touches while maintaining professionalism. Shows personality and cultural fit emphasis. Great for customer-facing roles, team environments, startups.
+    
+    - OPTIMISTIC: Positive, forward-thinking language with enthusiasm and growth mindset. Emphasizes potential, learning, and future contributions. Perfect for emerging professionals, career changers, growth-oriented companies.
+    
+    - PERSUASIVE: Compelling, results-focused language with strong action verbs and quantified achievements. Sales-oriented approach highlighting impact and value creation. Excellent for sales, marketing, leadership roles.
+    
+    - BOLD: Confident, assertive language with strong statements and ambitious claims. Risk-taking and innovation-focused presentation. Suitable for entrepreneurial roles, creative industries, disruptive companies.
+    
+    - CREATIVE: Innovative, unique expression with personality-driven content and creative formatting elements. Artistic or unconventional approach to information presentation. Ideal for design, marketing, entertainment, media roles.
+    
+    - ANALYTICAL: Logical, systematic presentation with methodical approach to information organization. Process-oriented language with emphasis on problem-solving methodology. Perfect for engineering, data science, operations roles.
+    
+    - COLLABORATIVE: Team-oriented language emphasizing partnership, cooperation, and collective achievements. Community-focused approach highlighting relationship building. Great for HR, project management, non-profit sectors.
+    
+    - AUTHORITATIVE: Expert-level language demonstrating deep knowledge and industry leadership. Thought leadership positioning with advanced terminology. Suitable for senior executive, consulting, subject matter expert roles.
+
+    TONE ASSESSMENT CRITERIA:
+    - Analyze language patterns, word choice, and sentence structure
+    - Evaluate personality projection and cultural fit indicators
+    - Consider industry appropriateness and target audience alignment
+    - Assess consistency of tone throughout the document
+    - Identify mixed tones and recommend primary classification
+    - Provide specific examples from the resume content
+    - Suggest tone adjustments based on career goals and industry standards
 
     ADVANCED EXTRACTION TECHNIQUES:
 
@@ -241,12 +271,15 @@ export async function POST(request: NextRequest) {
     `;
 
     // Send file and prompt to Gemini
-    const result = await model.generateContent([prompt, {
-      inlineData: {
-        mimeType: file.type,
-        data: Buffer.from(bytes).toString("base64")
-      }
-    }]);
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: file.type,
+          data: Buffer.from(bytes).toString("base64"),
+        },
+      },
+    ]);
 
     const response = await result.response;
     const text = response.text();
@@ -265,8 +298,8 @@ export async function POST(request: NextRequest) {
           originalName: file.name,
           fileSize: file.size,
           fileType: file.type,
-          uploadedAt: new Date().toISOString()
-        }
+          uploadedAt: new Date().toISOString(),
+        },
       });
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);

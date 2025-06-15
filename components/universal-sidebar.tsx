@@ -79,11 +79,6 @@ const applicantDashboardNavItems = [
     icon: FileTextIcon,
   },
   {
-    name: "Browse Jobs",
-    href: "/jobs",
-    icon: BriefcaseIcon,
-  },
-  {
     name: "Create Resume",
     href: "/resume/create",
     icon: SparklesIcon,
@@ -92,6 +87,11 @@ const applicantDashboardNavItems = [
     name: "Upload Resume",
     href: "/resume/upload",
     icon: UploadIcon,
+  },
+  {
+    name: "Browse Jobs",
+    href: "/jobs",
+    icon: BriefcaseIcon,
   },
 ];
 

@@ -78,7 +78,7 @@ export default function ResumeUploadPage() {
       "application/msword",
       "image/jpeg",
       "image/png",
-      "image/jpg"
+      "image/jpg",
     ];
 
     if (!allowedTypes.includes(file.type)) {
@@ -100,7 +100,8 @@ export default function ResumeUploadPage() {
       const formData = new FormData();
       formData.append("file", file);
       if (jobContext.role) formData.append("jobRole", jobContext.role);
-      if (jobContext.description) formData.append("jobDescription", jobContext.description);
+      if (jobContext.description)
+        formData.append("jobDescription", jobContext.description);
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -193,56 +194,200 @@ export default function ResumeUploadPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
-              className="space-y-12"
+              className="space-y-8"
             >
-              {/* Upload Zone */}
-              <div className="max-w-3xl mx-auto">
-                <UploadZone
-                  onFileUpload={handleFileUpload}
-                  isUploading={uploadState !== "idle"}
-                />
-              </div>
+              {/* Main Content - Two Column Layout */}
+              <div className="max-w-6xl mx-auto">
+                <div className="grid lg:grid-cols-2 gap-6 items-stretch">
+                  {/* Left Column - Job Context (Optional) */}
+                  <div className="bg-gradient-to-br from-primary/5 via-secondary/5 to-success/5 p-8 rounded-3xl border border-primary/10 backdrop-blur-sm shadow-xl shadow-primary/5 h-full flex flex-col min-h-[600px]">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                      <div className="inline-flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-gradient-to-r from-primary to-secondary rounded-2xl shadow-lg">
+                          <span className="text-2xl">🎯</span>
+                        </div>
+                        <div className="text-left">
+                          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            Job-Specific Analysis
+                          </h2>
+                          <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-1 rounded-full text-xs font-semibold">
+                            OPTIONAL
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-default-600 text-base">
+                        For targeted feedback, tell us about the job you're
+                        applying for
+                      </p>
+                    </div>
 
-              {/* Job Context Inputs */}
-              <div className="max-w-3xl mx-auto mt-8">
-                <div className="space-y-4 bg-white/50 dark:bg-gray-900/50 p-6 rounded-xl backdrop-blur-sm">
-                  <h3 className="text-lg font-semibold text-default-700">
-                    Optional Job Context
-                  </h3>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Input
-                      label="Job Role"
-                      placeholder="e.g. Senior Software Engineer"
-                      value={jobContext.role || ''}
-                      onChange={(e) => setJobContext(prev => ({
-                        ...prev,
-                        role: e.target.value
-                      }))}
-                    />
-                    <Textarea
-                      label="Job Description"
-                      placeholder="Enter job description for targeted analysis..."
-                      value={jobContext.description || ''}
-                      onChange={(e) => setJobContext(prev => ({
-                        ...prev,
-                        description: e.target.value
-                      }))}
-                      minRows={1}
-                    />
+                    {/* Form Fields */}
+                    <div className="space-y-6 flex-1">
+                      <Input
+                        label="Job Role/Title"
+                        placeholder="e.g., Senior Software Engineer, Product Manager"
+                        value={jobContext.role || ""}
+                        onChange={(e) =>
+                          setJobContext((prev) => ({
+                            ...prev,
+                            role: e.target.value,
+                          }))
+                        }
+                        variant="bordered"
+                        size="lg"
+                        classNames={{
+                          input: "text-base",
+                          inputWrapper:
+                            "bg-white/80 dark:bg-gray-800/80 border-2 border-primary/20 hover:border-primary/40 focus-within:border-primary shadow-sm",
+                          label: "text-default-700 font-medium",
+                        }}
+                        startContent={
+                          <div className="text-primary text-lg">💼</div>
+                        }
+                      />
+
+                      <Textarea
+                        label="Job Description"
+                        placeholder="Paste the job requirements, responsibilities, and qualifications..."
+                        value={jobContext.description || ""}
+                        onChange={(e) =>
+                          setJobContext((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
+                        variant="bordered"
+                        size="lg"
+                        minRows={4}
+                        classNames={{
+                          input: "text-base",
+                          inputWrapper:
+                            "bg-white/80 dark:bg-gray-800/80 border-2 border-primary/20 hover:border-primary/40 focus-within:border-primary shadow-sm",
+                          label: "text-default-700 font-medium",
+                        }}
+                      />
+                    </div>
+
+                    {/* Benefits Section */}
+                    <div className="mt-8 p-6 bg-white/60 dark:bg-gray-800/60 rounded-2xl border border-default-200/50 backdrop-blur-sm">
+                      <h3 className="text-center font-semibold text-default-700 mb-4">
+                        ✨ Enhanced Analysis Features
+                      </h3>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="text-center p-3 bg-success/10 rounded-xl border border-success/20">
+                          <div className="text-2xl mb-2">🎯</div>
+                          <p className="font-semibold text-success text-sm">
+                            Keyword Match
+                          </p>
+                          <p className="text-xs text-default-600 mt-1">
+                            Precise targeting
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-primary/10 rounded-xl border border-primary/20">
+                          <div className="text-2xl mb-2">📊</div>
+                          <p className="font-semibold text-primary text-sm">
+                            ATS Score
+                          </p>
+                          <p className="text-xs text-default-600 mt-1">
+                            System compatibility
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-secondary/10 rounded-xl border border-secondary/20">
+                          <div className="text-2xl mb-2">💡</div>
+                          <p className="font-semibold text-secondary text-sm">
+                            Custom Tips
+                          </p>
+                          <p className="text-xs text-default-600 mt-1">
+                            Tailored advice
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column - Upload Zone */}
+                  <div className="bg-gradient-to-br from-gray-50/80 to-white/90 dark:from-gray-900/80 dark:to-gray-800/80 p-8 rounded-3xl border border-default-200 backdrop-blur-sm shadow-xl shadow-default/5 h-full flex flex-col min-h-[600px]">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                      <div className="inline-flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-gradient-to-r from-success to-primary rounded-2xl shadow-lg">
+                          <span className="text-2xl">📄</span>
+                        </div>
+                        <div className="text-left">
+                          <h2 className="text-2xl font-bold bg-gradient-to-r from-success to-primary bg-clip-text text-transparent">
+                            Upload Your Resume
+                          </h2>
+                          <span className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1 rounded-full text-xs font-semibold">
+                            REQUIRED
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-default-600 text-base">
+                        Get instant AI-powered feedback and ATS compatibility
+                        score
+                      </p>
+
+                      {(jobContext.role || jobContext.description) && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="mt-4 p-4 bg-gradient-to-r from-success/10 to-primary/10 rounded-2xl border border-success/20"
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="text-success text-xl">✅</span>
+                            <p className="text-success font-semibold">
+                              Ready for {jobContext.role || "role-specific"}{" "}
+                              analysis!
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Upload Zone - Centered */}
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="w-full">
+                        <UploadZone
+                          onFileUpload={handleFileUpload}
+                          isUploading={uploadState !== "idle"}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Supported Formats */}
+                    <div className="mt-6 p-4 bg-default-50 dark:bg-gray-800/50 rounded-2xl border border-default-200/50">
+                      <h4 className="text-center font-semibold text-default-700 mb-3">
+                        📋 Supported Formats
+                      </h4>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {["PDF", "DOCX", "DOC", "TXT", "JPG", "PNG"].map(
+                          (format) => (
+                            <span
+                              key={format}
+                              className="px-3 py-1 bg-white dark:bg-gray-700 border border-default-200 rounded-lg text-sm font-medium text-default-600"
+                            >
+                              {format}
+                            </span>
+                          )
+                        )}
+                      </div>
+                      <p className="text-center text-xs text-default-500 mt-2">
+                        Maximum file size: 5MB
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Features Section */}
-              <div className="space-y-8">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-4">
+              {/* Features Section - More Compact */}
+              <div className="max-w-4xl mx-auto">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-bold mb-2">
                     Why Choose Our AI Analysis?
                   </h2>
-                  <p className="text-default-600 max-w-2xl mx-auto">
-                    Our advanced AI technology provides comprehensive resume
-                    analysis to help you stand out in today's competitive job
-                    market.
+                  <p className="text-default-600">
+                    Advanced AI technology for comprehensive resume feedback
                   </p>
                 </div>
                 <FeatureCards />
