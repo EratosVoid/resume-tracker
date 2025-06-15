@@ -74,7 +74,7 @@ export default function ResumeUpload({
       "text/plain",
       "image/jpeg",
       "image/png",
-      "image/jpg"
+      "image/jpg",
     ];
     const maxSize = 5 * 1024 * 1024; // 5MB
 
@@ -101,7 +101,10 @@ export default function ResumeUpload({
         // PDF parsing logic
         text = "PDF content parsed...";
         toast.success("PDF parsing is simulated in this demo");
-      } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      } else if (
+        file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
         // DOCX parsing logic
         text = "DOCX content parsed...";
         toast.success("DOCX parsing is simulated in this demo");
@@ -110,17 +113,17 @@ export default function ResumeUpload({
         const imageUrl = URL.createObjectURL(file);
         // You might want to use OCR here in a real implementation
         text = `Image uploaded: ${file.name}`;
-        setUploadedFile(prev => 
+        setUploadedFile((prev) =>
           prev ? { ...prev, parsed: true, text, url: imageUrl } : null
         );
         toast.success("Image uploaded successfully");
       }
 
       setUploadProgress(100);
-      setUploadedFile(prev =>
+      setUploadedFile((prev) =>
         prev ? { ...prev, parsed: true, text } : null
       );
-      setFormData(prev => ({ ...prev, resumeText: text }));
+      setFormData((prev) => ({ ...prev, resumeText: text }));
       toast.success("File processed successfully!");
     } catch (error) {
       console.error("Error processing file:", error);
@@ -134,10 +137,11 @@ export default function ResumeUpload({
     onDrop,
     accept: {
       "application/pdf": [".pdf"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
       "text/plain": [".txt"],
       "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"]
+      "image/png": [".png"],
     },
     multiple: false,
   });
@@ -220,7 +224,7 @@ export default function ResumeUpload({
     }
     setUploadedFile(null);
     setUploadProgress(0);
-    setFormData(prev => ({ ...prev, resumeText: "" }));
+    setFormData((prev) => ({ ...prev, resumeText: "" }));
   };
 
   return (
@@ -260,8 +264,8 @@ export default function ResumeUpload({
                         : "Upload your resume"}
                     </p>
                     <p className="text-small text-default-500">
-                      Drag and drop or click to select a PDF, DOCX, TXT, PNG or JPG files
-                      (max 5MB)
+                      Drag and drop or click to select PDF, DOCX, TXT, PNG or
+                      JPG files (max 5MB)
                     </p>
                   </div>
                 </motion.div>
@@ -276,7 +280,9 @@ export default function ResumeUpload({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <FileIcon className="h-5 w-5 text-primary" />
-                      <span className="font-medium">{uploadedFile.file.name}</span>
+                      <span className="font-medium">
+                        {uploadedFile.file.name}
+                      </span>
                       {uploadedFile.parsed && (
                         <CheckIcon className="h-4 w-4 text-success" />
                       )}
@@ -291,22 +297,25 @@ export default function ResumeUpload({
                     </Button>
                   </div>
 
-                  {uploadedFile.file.type.startsWith("image/") && uploadedFile.url && (
-                    <div className="mt-2 mb-4">
-                      <img 
-                        src={uploadedFile.url} 
-                        alt="Uploaded resume" 
-                        className="max-h-40 rounded-md mx-auto"
-                      />
-                    </div>
-                  )}
+                  {uploadedFile.file.type.startsWith("image/") &&
+                    uploadedFile.url && (
+                      <div className="mt-2 mb-4">
+                        <img
+                          src={uploadedFile.url}
+                          alt="Uploaded resume"
+                          className="max-h-40 rounded-md mx-auto"
+                        />
+                      </div>
+                    )}
 
                   {uploadProgress > 0 && uploadProgress < 100 && (
                     <Progress value={uploadProgress} className="mb-2" />
                   )}
 
                   <p className="text-small text-default-500">
-                    {uploadedFile.parsed ? "File processed successfully" : "Processing..."}
+                    {uploadedFile.parsed
+                      ? "File processed successfully"
+                      : "Processing..."}
                   </p>
                 </motion.div>
               )}
