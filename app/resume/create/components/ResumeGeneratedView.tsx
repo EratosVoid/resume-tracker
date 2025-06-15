@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardBody,
@@ -62,6 +63,7 @@ export default function ResumeGeneratedView({
   creationMode,
   structuredData,
 }: ResumeGeneratedViewProps) {
+  const { data: session } = useSession();
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<{
     success: boolean;
@@ -84,18 +86,20 @@ export default function ResumeGeneratedView({
   const handleSaveResume = async (isPublic: boolean = false) => {
     setIsSaving(true);
     try {
+      console.log("session", !session);
       const response = await fetch("/api/resume/save", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          userId: session?.user?.id,
           structuredData,
           generatedResume: resumeData.resume,
           creationMode,
           atsScore: resumeData.atsScore,
           isPublic,
-          isAnonymous: true, // For now, treating all as anonymous
+          isAnonymous: !session, // Anonymous if no session, authenticated if session exists
         }),
       });
 
