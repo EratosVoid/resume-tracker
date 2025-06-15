@@ -25,6 +25,7 @@ const createJobSchema = z.object({
   requirements: z.array(z.string()).default([]),
   benefits: z.array(z.string()).default([]),
   deadline: z.string().optional(),
+  decision: z.string().min(1, "Decision Logic is required"),
   isPublic: z.boolean().default(true),
   status: z.enum(["active", "paused", "closed"]).default("active"),
 });
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const validatedData = createJobSchema.parse(body);
-
+    console.log("Validated job data:", validatedData);
     await connectDB();
 
     // Generate slug from title

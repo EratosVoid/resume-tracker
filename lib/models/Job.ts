@@ -16,6 +16,7 @@ export interface IJob extends Document {
   createdBy: mongoose.Types.ObjectId;
   slug: string;
   deadline?: Date;
+  decision: string;
   status: "active" | "closed" | "draft";
   applicationCount: number;
   createdAt: Date;
@@ -63,6 +64,11 @@ const JobSchema = new Schema<IJob>(
       required: true,
       unique: true,
       lowercase: true,
+    },
+    decision: {
+      type: String,
+      required: true,
+      maxlength: 5000,
     },
     deadline: { type: Date },
     status: {

@@ -31,6 +31,7 @@ interface Message {
 interface JobFormData {
   title: string;
   description: string;
+  decision: string;
   location: string;
   experienceLevel: string;
   employmentType: string;

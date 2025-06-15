@@ -55,6 +55,7 @@ const currencies = [
 interface JobFormData {
   title: string;
   description: string;
+  decision: string;
   location: string;
   experienceLevel: string;
   employmentType: string;
@@ -78,6 +79,7 @@ export default function NewJobPage() {
   const [formData, setFormData] = useState<JobFormData>({
     title: "",
     description: "",
+    decision: "",
     location: "",
     experienceLevel: "",
     employmentType: "",
@@ -484,6 +486,24 @@ export default function NewJobPage() {
             </CardBody>
           </Card>
 
+          {/* Decision Logic */}
+          <Card>
+            <CardHeader>
+              <h2 className="text-xl font-semibold">Intelligent Screening by Role</h2>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              
+              <Textarea
+                label="Job Role Decision Logic"
+                placeholder="Describe the role for decision logic..."
+                value={formData.decision}
+                onChange={handleInputChange("decision")}
+                minRows={6}
+                isRequired
+              />
+              </CardBody>
+          </Card>
+        
           {/* Visibility & Status */}
           <Card>
             <CardHeader>
@@ -542,7 +562,7 @@ export default function NewJobPage() {
               type="submit"
               color="primary"
               isLoading={loading}
-              isDisabled={!formData.title || !formData.description}
+              isDisabled={!formData.title || !formData.description || !formData.decision}
             >
               Post Job
             </Button>
