@@ -163,6 +163,14 @@ Analyze this resume and provide a detailed assessment. Return a JSON response wi
     "atsCompatibility": {
       "score": number (0-100),
       "feedback": "string"
+    },
+    "experience": {
+      "score": number (0-100),
+      "feedback": "string"
+    },
+    "education": {
+      "score": number (0-100),
+      "feedback": "string"
     }
   },
   "extractedInfo": {

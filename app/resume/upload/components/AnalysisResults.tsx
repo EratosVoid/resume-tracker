@@ -24,6 +24,7 @@ import {
   SaveIcon,
   LoaderIcon,
 } from "lucide-react";
+import { useEffect } from "react";
 
 interface AnalysisResult {
   overallScore: number;
@@ -36,6 +37,8 @@ interface AnalysisResult {
     content: { score: number; feedback: string };
     keywords: { score: number; feedback: string };
     atsCompatibility: { score: number; feedback: string };
+    experience: { score: number; feedback: string };
+    education: { score: number; feedback: string };
   };
   extractedInfo: {
     name: string;
@@ -63,6 +66,34 @@ export default function AnalysisResults({
   fileName,
   onStartOver,
 }: AnalysisResultsProps) {
+// Add scoring weights
+  const sectionWeights = {
+    formatting: 0.15,
+    content: 0.20,
+    keywords: 0.25,
+    atsCompatibility: 0.15,
+    experience: 0.15,
+    education: 0.10
+  };
+
+  // Calculate weighted score
+  const calculateWeightedScore = () => {
+    return Object.entries(analysis.sections).reduce((total, [key, section]) => {
+      return total + (section.score * (sectionWeights[key as keyof typeof sectionWeights] || 0));
+    }, 0);
+  };
+
+  useEffect(() => {
+    const calculatedScore = calculateWeightedScore();
+    // Verify if calculated score matches the overall score
+    if (Math.abs(calculatedScore - analysis.overallScore) > 1) {
+      console.warn('Score calculation mismatch:', {
+        calculated: calculatedScore,
+        reported: analysis.overallScore
+      });
+    }
+  }, [analysis]);
+
   const { data: session } = useSession();
   const [isSaving, setIsSaving] = useState(false);
 
@@ -233,6 +264,7 @@ export default function AnalysisResults({
         </Card>
       </motion.div>
 
+      {/* Resume Tone Analysis */}
       <motion.div variants={itemVariants}>
         <Card>
           <CardHeader>
@@ -269,14 +301,19 @@ export default function AnalysisResults({
                     <h3 className="font-semibold capitalize">
                       {key.replace(/([A-Z])/g, " $1").trim()}
                     </h3>
-                    <Chip
-                      color={getScoreColor(section.score)}
-                      variant="flat"
-                      size="sm"
-                      className="font-semibold"
-                    >
-                      {section.score}%
-                    </Chip>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-default-500">
+                        {(sectionWeights[key as keyof typeof sectionWeights] * 100)}%
+                      </span>
+                      <Chip
+                        color={getScoreColor(section.score)}
+                        variant="flat"
+                        size="sm"
+                        className="font-semibold"
+                      >
+                        {section.score}%
+                      </Chip>
+                    </div>
                   </div>
                   <p className="text-sm text-default-600">{section.feedback}</p>
                 </div>
