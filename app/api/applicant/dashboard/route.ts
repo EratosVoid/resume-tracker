@@ -91,6 +91,8 @@ export async function GET(request: NextRequest) {
       rawFileURL: resume.rawFileURL,
       fileName: resume.fileName,
       fileType: resume.fileType,
+      shareableId: resume.shareableId || null, // Include shareable link
+      isPublic: resume.isPublic || false, // Include public status
       atsScores: resume.atsScores.map((score: any) => ({
         jobId: score.jobId?._id || score.jobId,
         jobTitle: score.jobId?.title || "Unknown Job",

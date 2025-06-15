@@ -1,6 +1,19 @@
 "use client";
 
-import { Card, CardBody, Button, Chip, Divider } from "@heroui/react";
+import {
+  Card,
+  CardBody,
+  Button,
+  Chip,
+  Divider,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Progress,
+  Textarea,
+} from "@heroui/react";
 import { motion } from "framer-motion";
 import {
   FileTextIcon,
@@ -16,7 +29,41 @@ import {
   AlertCircleIcon,
   ShareIcon,
   ExternalLinkIcon,
+  XIcon,
+  UserIcon,
+  StarIcon,
+  TargetIcon,
+  BookOpenIcon,
+  LightbulbIcon,
 } from "lucide-react";
+import { useState } from "react";
+
+interface DetailedAnalysis {
+  overallScore: number;
+  tone: {
+    category: string;
+    reasoning: string;
+  };
+  sections: {
+    formatting: { score: number; feedback: string };
+    content: { score: number; feedback: string };
+    keywords: { score: number; feedback: string };
+    atsCompatibility: { score: number; feedback: string };
+    experience: { score: number; feedback: string };
+    education: { score: number; feedback: string };
+  };
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary: string;
+  experience: string;
+  education: string;
+  skills: string[];
+  improvements: string[];
+  matchedSkills: string[];
+  missingSkills: string[];
+}
 
 interface ResumeVersion {
   _id: string;
@@ -25,6 +72,8 @@ interface ResumeVersion {
   fileName?: string;
   fileType?: string;
   shareableId?: string;
+  // Add detailed analysis data for uploaded resumes
+  detailedAnalysis?: DetailedAnalysis;
   atsScores: Array<{
     jobId: string;
     jobTitle: string;
@@ -44,6 +93,11 @@ interface ResumeTimelineProps {
 export default function ResumeTimeline({
   resumeVersions,
 }: ResumeTimelineProps) {
+  const [selectedResume, setSelectedResume] = useState<ResumeVersion | null>(
+    null
+  );
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -81,6 +135,35 @@ export default function ResumeTimeline({
   const handleViewShareLink = (shareableId: string) => {
     const shareUrl = `${window.location.origin}/resume/share/${shareableId}`;
     window.open(shareUrl, "_blank");
+  };
+
+  const handleViewDetails = (
+    detailedAnalysis: DetailedAnalysis,
+    resume: ResumeVersion
+  ) => {
+    setSelectedResume({ ...resume, detailedAnalysis });
+    setIsDetailModalOpen(true);
+  };
+
+  const parseDetailedAnalysis = (
+    parsedText: string,
+    atsScores: any[]
+  ): DetailedAnalysis | null => {
+    try {
+      const parsed = JSON.parse(parsedText);
+      // Check if it has the expected structure for detailed analysis
+      if (parsed.tone && parsed.sections && parsed.improvements) {
+        // If overallScore is missing, use the highest ATS score
+        if (!parsed.overallScore) {
+          const highestScore = getHighestScore(atsScores);
+          parsed.overallScore = highestScore?.score || 0;
+        }
+        return parsed;
+      }
+      return null;
+    } catch {
+      return null;
+    }
   };
 
   const containerVariants = {
@@ -124,6 +207,10 @@ export default function ResumeTimeline({
           const formattedDate = formatDate(resume.createdAt);
           const highestScore = getHighestScore(resume.atsScores);
           const isLatest = index === 0;
+          const detailedAnalysis = parseDetailedAnalysis(
+            resume.parsedText,
+            resume.atsScores
+          );
 
           return (
             <motion.div
@@ -198,7 +285,7 @@ export default function ResumeTimeline({
                                 ? "Uploaded"
                                 : "Created"}
                             </Chip>
-                            {resume.shareableId && (
+                            {resume.shareableId && !resume.fileType && (
                               <Chip
                                 size="sm"
                                 color="success"
@@ -206,6 +293,16 @@ export default function ResumeTimeline({
                                 startContent={<ShareIcon className="h-3 w-3" />}
                               >
                                 Public
+                              </Chip>
+                            )}
+                            {detailedAnalysis && (
+                              <Chip
+                                size="sm"
+                                color="secondary"
+                                variant="flat"
+                                startContent={<BrainIcon className="h-3 w-3" />}
+                              >
+                                AI Analyzed
                               </Chip>
                             )}
                           </div>
@@ -310,7 +407,7 @@ export default function ResumeTimeline({
 
                     {/* Actions */}
                     <div className="flex flex-wrap gap-3 pt-4 border-t border-default-200">
-                      {resume.shareableId && (
+                      {resume.shareableId && !resume.fileType && (
                         <Button
                           size="sm"
                           variant="flat"
@@ -329,8 +426,14 @@ export default function ResumeTimeline({
                         size="sm"
                         variant="flat"
                         startContent={<EyeIcon className="h-4 w-4" />}
+                        onPress={() =>
+                          handleViewDetails(detailedAnalysis!, resume)
+                        }
+                        isDisabled={!resume.fileType}
                       >
-                        View Details
+                        {resume.type === "uploaded" && resume.fileType
+                          ? "View Details"
+                          : "View Details"}
                       </Button>
                       {resume.rawFileURL && (
                         <Button
@@ -342,14 +445,6 @@ export default function ResumeTimeline({
                           Download
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        color="primary"
-                        startContent={<BrainIcon className="h-4 w-4" />}
-                      >
-                        Re-analyze
-                      </Button>
                     </div>
                   </CardBody>
                 </Card>
@@ -381,6 +476,353 @@ export default function ResumeTimeline({
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Detailed Analysis Modal */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        size="5xl"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-primary to-secondary rounded-lg">
+                    <BrainIcon className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">
+                      {selectedResume?.fileName || "Resume Analysis"}
+                    </h3>
+                    <p className="text-sm text-default-600 font-normal">
+                      Detailed AI-powered feedback and insights
+                    </p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                {selectedResume &&
+                  (() => {
+                    // const analysis = parseDetailedAnalysis(
+                    //   selectedResume.parsedText,
+                    //   selectedResume.atsScores
+                    // );
+
+                    if (!selectedResume.detailedAnalysis) {
+                      return (
+                        <div className="text-center py-8">
+                          <AlertCircleIcon className="h-12 w-12 text-warning mx-auto mb-4" />
+                          <h4 className="text-lg font-semibold mb-2">
+                            No Detailed Analysis Available
+                          </h4>
+                          <p className="text-default-600">
+                            This resume doesn't have detailed AI analysis data.
+                            Only uploaded resumes with AI analysis show detailed
+                            feedback.
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-6">
+                        {/* Overall Score Section */}
+                        <Card className="bg-gradient-to-br from-primary/5 to-secondary/5">
+                          <CardBody className="p-6">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="text-lg font-semibold mb-2">
+                                  Overall ATS Score
+                                </h4>
+                                <p className="text-default-600">
+                                  Your resume's compatibility with Applicant
+                                  Tracking Systems
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-5xl font-black text-primary mb-2">
+                                  {
+                                    selectedResume.detailedAnalysis
+                                      ?.overallScore
+                                  }
+                                </div>
+                                <Chip
+                                  color={getScoreColor(
+                                    selectedResume.detailedAnalysis
+                                      ?.overallScore
+                                  )}
+                                  variant="flat"
+                                  size="lg"
+                                  className="font-semibold"
+                                >
+                                  {getScoreLabel(
+                                    selectedResume.detailedAnalysis
+                                      ?.overallScore
+                                  )}
+                                </Chip>
+                              </div>
+                            </div>
+                          </CardBody>
+                        </Card>
+
+                        {/* Section Scores */}
+                        <Card>
+                          <CardBody className="p-6">
+                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                              <TargetIcon className="h-5 w-5" />
+                              Section Breakdown
+                            </h4>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              {Object.entries(
+                                selectedResume.detailedAnalysis?.sections
+                              ).map(([key, section]) => (
+                                <div key={key} className="space-y-2">
+                                  <div className="flex justify-between items-center">
+                                    <span className="font-medium capitalize">
+                                      {key.replace(/([A-Z])/g, " $1").trim()}
+                                    </span>
+                                    <Chip
+                                      color={getScoreColor(section.score)}
+                                      variant="flat"
+                                      size="sm"
+                                    >
+                                      {section.score}%
+                                    </Chip>
+                                  </div>
+                                  <Progress
+                                    value={section.score}
+                                    color={getScoreColor(section.score)}
+                                    size="sm"
+                                    className="mb-2"
+                                  />
+                                  <p className="text-sm text-default-600">
+                                    {section.feedback}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardBody>
+                        </Card>
+
+                        {/* Resume Tone */}
+                        <Card>
+                          <CardBody className="p-6">
+                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                              <FileTextIcon className="h-5 w-5" />
+                              Resume Tone Analysis
+                            </h4>
+                            <div className="flex items-start gap-4">
+                              <Chip
+                                color="secondary"
+                                variant="flat"
+                                size="lg"
+                                className="font-semibold"
+                              >
+                                {selectedResume.detailedAnalysis?.tone.category}
+                              </Chip>
+                              <p className="text-default-600 flex-1">
+                                {
+                                  selectedResume.detailedAnalysis?.tone
+                                    .reasoning
+                                }
+                              </p>
+                            </div>
+                          </CardBody>
+                        </Card>
+
+                        {/* Skills Analysis */}
+                        <div className="grid md:grid-cols-2 gap-4">
+                          {/* Matched Skills */}
+                          {selectedResume.detailedAnalysis?.matchedSkills
+                            .length > 0 && (
+                            <Card>
+                              <CardBody className="p-6">
+                                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2 text-success">
+                                  <CheckCircleIcon className="h-5 w-5" />
+                                  Matched Skills
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedResume.detailedAnalysis?.matchedSkills.map(
+                                    (skill, index) => (
+                                      <Chip
+                                        key={index}
+                                        color="success"
+                                        variant="flat"
+                                        size="sm"
+                                      >
+                                        {skill}
+                                      </Chip>
+                                    )
+                                  )}
+                                </div>
+                              </CardBody>
+                            </Card>
+                          )}
+
+                          {/* Missing Skills */}
+                          {selectedResume.detailedAnalysis?.missingSkills
+                            .length > 0 && (
+                            <Card>
+                              <CardBody className="p-6">
+                                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2 text-warning">
+                                  <AlertCircleIcon className="h-5 w-5" />
+                                  Suggested Skills
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedResume.detailedAnalysis?.missingSkills.map(
+                                    (skill, index) => (
+                                      <Chip
+                                        key={index}
+                                        color="warning"
+                                        variant="flat"
+                                        size="sm"
+                                      >
+                                        {skill}
+                                      </Chip>
+                                    )
+                                  )}
+                                </div>
+                              </CardBody>
+                            </Card>
+                          )}
+                        </div>
+
+                        {/* Improvement Suggestions */}
+                        {selectedResume.detailedAnalysis?.improvements.length >
+                          0 && (
+                          <Card>
+                            <CardBody className="p-6">
+                              <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <LightbulbIcon className="h-5 w-5 text-warning" />
+                                Improvement Suggestions
+                              </h4>
+                              <div className="space-y-3">
+                                {selectedResume.detailedAnalysis?.improvements.map(
+                                  (improvement, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-start gap-3 p-3 bg-warning/10 rounded-lg border border-warning/20"
+                                    >
+                                      <div className="w-6 h-6 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-xs font-bold text-warning">
+                                          {index + 1}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-default-700">
+                                        {improvement}
+                                      </p>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </CardBody>
+                          </Card>
+                        )}
+
+                        {/* Extracted Information */}
+                        <Card>
+                          <CardBody className="p-6">
+                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                              <UserIcon className="h-5 w-5" />
+                              Extracted Information
+                            </h4>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="text-sm font-medium text-default-600">
+                                    Name
+                                  </label>
+                                  <p className="text-sm bg-default-50 p-2 rounded">
+                                    {selectedResume.detailedAnalysis?.name ||
+                                      "Not specified"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-default-600">
+                                    Email
+                                  </label>
+                                  <p className="text-sm bg-default-50 p-2 rounded">
+                                    {selectedResume.detailedAnalysis?.email ||
+                                      "Not specified"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-default-600">
+                                    Phone
+                                  </label>
+                                  <p className="text-sm bg-default-50 p-2 rounded">
+                                    {selectedResume.detailedAnalysis?.phone ||
+                                      "Not specified"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-default-600">
+                                    Location
+                                  </label>
+                                  <p className="text-sm bg-default-50 p-2 rounded">
+                                    {selectedResume.detailedAnalysis
+                                      ?.location ||
+                                      "Not specified"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="text-sm font-medium text-default-600">
+                                    Professional Summary
+                                  </label>
+                                  <p className="text-sm bg-default-50 p-2 rounded max-h-20 overflow-y-auto">
+                                    {selectedResume.detailedAnalysis
+                                      ?.summary || "Not provided"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-default-600">
+                                    Technical Skills
+                                  </label>
+                                  <div className="bg-default-50 p-2 rounded">
+                                    {selectedResume.detailedAnalysis
+                                      ?.skills.length > 0 ? (
+                                      <div className="flex flex-wrap gap-1">
+                                        {selectedResume.detailedAnalysis?.skills.map(
+                                          (skill, index) => (
+                                            <Chip
+                                              key={index}
+                                              size="sm"
+                                              variant="flat"
+                                              color="primary"
+                                            >
+                                              {skill}
+                                            </Chip>
+                                          )
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm text-default-500">
+                                        No skills extracted
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardBody>
+                        </Card>
+                      </div>
+                    );
+                  })()}
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" onPress={onClose}>
+                  Close
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

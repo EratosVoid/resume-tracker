@@ -117,6 +117,7 @@ export default function AnalysisResults({
         body: JSON.stringify({
           resumeData: {
             parsedText: JSON.stringify({
+              overallScore: analysis.overallScore,
               ...analysis.extractedInfo,
               tone: analysis.tone,
               sections: analysis.sections,

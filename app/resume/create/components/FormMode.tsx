@@ -117,20 +117,132 @@ export default function FormMode({
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
-      fullName: "",
-      email: "",
-      phone: "",
-      location: "",
-      linkedin: "",
-      portfolio: "",
+      fullName: "Sarah Johnson",
+      email: "sarah.johnson@email.com",
+      phone: "+1 (555) 123-4567",
+      location: "San Francisco, CA",
+      linkedin: "linkedin.com/in/sarahjohnson",
+      portfolio: "sarahjohnson.dev",
     },
-    targetRole: "",
-    experience: "entry",
-    skills: [],
-    workExperience: [],
-    education: [],
-    projects: [],
-    achievements: [],
+    targetRole: "Senior Software Engineer",
+    experience: "senior",
+    skills: [
+      {
+        name: "React",
+        proof:
+          "Built 5+ production applications using React, including a fintech dashboard serving 10k+ users",
+        validated: true,
+      },
+      {
+        name: "Node.js",
+        proof:
+          "3 years experience building scalable APIs, deployed microservices handling 1M+ requests/day",
+        validated: true,
+      },
+      {
+        name: "TypeScript",
+        proof:
+          "Migrated legacy JavaScript codebase to TypeScript, reducing bugs by 40%",
+        validated: true,
+      },
+      {
+        name: "AWS",
+        proof:
+          "AWS Solutions Architect Associate certified, managed infrastructure for 20+ applications",
+        validated: true,
+      },
+    ],
+    workExperience: [
+      {
+        company: "TechCorp Inc.",
+        title: "Software Engineer",
+        startDate: "Jan 2022",
+        endDate: "Present",
+        description:
+          "Lead development of customer-facing web applications using React and Node.js. Collaborate with cross-functional teams to deliver high-quality software solutions.",
+        achievements: [
+          "Increased application performance by 35% through code optimization",
+          "Led migration to microservices architecture",
+          "Mentored 3 junior developers",
+          "Reduced deployment time from 2 hours to 15 minutes",
+        ],
+      },
+      {
+        company: "StartupXYZ",
+        title: "Frontend Developer",
+        startDate: "Jun 2020",
+        endDate: "Dec 2021",
+        description:
+          "Developed responsive web applications and collaborated with designers to implement pixel-perfect UI components.",
+        achievements: [
+          "Built component library used across 5 products",
+          "Improved mobile user experience, increasing engagement by 25%",
+          "Implemented automated testing, reducing bugs by 50%",
+        ],
+      },
+    ],
+    education: [
+      {
+        school: "University of California, Berkeley",
+        degree: "Bachelor of Science",
+        field: "Computer Science",
+        graduationYear: "2020",
+        gpa: "3.8/4.0",
+        honors: "Magna Cum Laude",
+      },
+    ],
+    projects: [
+      {
+        name: "E-commerce Platform",
+        description:
+          "Full-stack e-commerce application with payment processing, inventory management, and admin dashboard. Built with React, Node.js, and PostgreSQL.",
+        technologies: ["React", "Node.js", "PostgreSQL", "Stripe API", "AWS"],
+        link: "https://ecommerce-demo.com",
+        github: "https://github.com/sarahjohnson/ecommerce-platform",
+        achievements: [
+          "Handles 1000+ concurrent users",
+          "99.9% uptime over 6 months",
+          "Integrated with 3 payment providers",
+          "Featured on Product Hunt",
+        ],
+      },
+      {
+        name: "Task Management App",
+        description:
+          "Collaborative task management application with real-time updates, team collaboration features, and advanced analytics dashboard.",
+        technologies: ["Vue.js", "Express.js", "MongoDB", "Socket.io"],
+        link: "https://taskmaster-app.com",
+        github: "https://github.com/sarahjohnson/task-manager",
+        achievements: [
+          "500+ active users within first month",
+          "Real-time collaboration for teams up to 50 members",
+          "Mobile-responsive design",
+        ],
+      },
+    ],
+    achievements: [
+      {
+        title: "Employee of the Year",
+        description:
+          "Recognized for outstanding performance and leadership in delivering critical projects ahead of schedule while maintaining high code quality standards.",
+        date: "Dec 2023",
+        proof: "https://techcorp.com/awards/2023",
+      },
+      {
+        title: "Open Source Contributor",
+        description:
+          "Active contributor to popular open-source projects with over 100 merged pull requests and 500+ GitHub stars across personal repositories.",
+        date: "Ongoing",
+        proof: "https://github.com/sarahjohnson",
+      },
+      {
+        title: "Tech Conference Speaker",
+        description:
+          "Delivered presentation on 'Modern React Patterns' at ReactConf 2023, attended by 500+ developers.",
+        date: "Oct 2023",
+        proof: "https://reactconf.com/speakers/sarah-johnson",
+      },
+    ],
   });
 
   const handleInputChange = (

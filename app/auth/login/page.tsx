@@ -62,7 +62,7 @@ export default function LoginPage() {
           router.push("/dashboard");
         } else if (session?.user?.role === "applicant") {
           console.log("applicant");
-          router.push("/applicant");
+          router.push("/applicant/resumes");
         } else {
           router.push("/dashboard"); // Fallback
         }
