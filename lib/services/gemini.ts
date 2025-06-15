@@ -464,47 +464,64 @@ export class GeminiService {
   }
 
   async analyzeGeneratedResume(resumeData: any): Promise<GeminiAnalysisResult> {
-    try {
-      const prompt = `Analyze this resume content and provide an ATS compatibility score between 0-100:
-      
+  try {
+    // Format resume data for analysis
+    const resumeText = `
       Target Role: ${resumeData.targetRole}
-      Experience: ${resumeData.experience}
-      Skills: ${resumeData.skills?.map((s: any) => s.name).join(', ')}
-      Work Experience: ${resumeData.workExperience}
-      Projects: ${resumeData.projects}
-      Achievements: ${resumeData.achievements}
+      Experience Level: ${resumeData.experience}
       
-      Return only the numeric score.`;
+      Personal Info:
+      ${Object.entries(resumeData.personalInfo || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
+      
+      Skills:
+      ${resumeData.skills?.map((s: any) => s.name).join(', ')}
+      
+      Work Experience:
+      ${resumeData.workExperience?.join('\n')}
+      
+      Projects:
+      ${resumeData.projects?.join('\n')}
+      
+      Education:
+      ${resumeData.education?.join('\n')}
+      
+      Achievements:
+      ${resumeData.achievements?.join('\n')}
+    `;
 
-      const result = await this.model.generateContent(prompt);
-      const score = parseInt(await result.response.text()) || 70;
+    // Get ATS score from Gemini
+    const atsPrompt = `As an ATS expert, analyze this resume and provide a score between 0-100 based on:
+    - Content relevance to target role
+    - Skills alignment
+    - Experience quality
+    - Overall completeness
+    
+    Resume:
+    ${resumeText}
+    
+    Return only a number between 0-100.`;
 
-      return {
-        parsedData: resumeData,
-        atsScore: score,
-        analysis: {
-          skillsMatched: [],
-          skillsMissing: [],
-          experienceMatch: 0,
-          improvementSuggestions: [],
-          strengthsIdentified: []
-        }
-      };
-    } catch (error) {
-      console.error('Resume analysis error:', error);
-      return {
-        parsedData: resumeData,
-        atsScore: 70,
-        analysis: {
-          skillsMatched: [],
-          skillsMissing: [],
-          experienceMatch: 0,
-          improvementSuggestions: [],
-          strengthsIdentified: []
-        }
-      };
-    }
+    const atsResult = await this.model.generateContent(atsPrompt);
+    const atsScoreText = await atsResult.response.text();
+    const atsScore = parseInt(atsScoreText.trim()) || 70; // Fallback to 70 only if parsing fails
+
+    // Return analysis with actual ATS score
+    return {
+      parsedData: resumeData,
+      atsScore: atsScore, // Using actual score from Gemini
+      analysis: {
+        skillsMatched: [],
+        skillsMissing: [],
+        experienceMatch: 0,
+        improvementSuggestions: [],
+        strengthsIdentified: []
+      }
+    };
+  } catch (error) {
+    console.error('Resume analysis error:', error);
+    throw error; // Let the calling code handle the error
   }
+}
 }
 
 export const geminiService = new GeminiService();
