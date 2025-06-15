@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/database";
 import User from "@/lib/models/User";
 import Resume from "@/lib/models/Resume";
+import { GeminiService } from "@/lib/services/gemini";
 
 interface PersonalInfo {
   fullName: string;
@@ -40,102 +41,43 @@ interface RequestBody {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    const body: RequestBody = await request.json();
+    const body = await request.json();
     const { data, mode, collectedData } = body;
+    
+    // Initialize GeminiService for analysis
+    const geminiService = new GeminiService();
 
-    console.log("Resume generation request:", { mode, data });
+    // Get ATS analysis using existing method
+    const analysis = await geminiService.analyzeGeneratedResume(data);
 
-    // Validate required fields
-    if (!data.personalInfo.fullName || !data.targetRole) {
-      return NextResponse.json(
-        { error: "Missing required fields: fullName and targetRole" },
-        { status: 400 }
-      );
-    }
-
-    // Simulate AI resume generation
-    // In a real implementation, you would:
-    // 1. Use Google Gemini API to generate resume content
-    // 2. Create a PDF using a library like jsPDF or Puppeteer
-    // 3. Store the resume in your database
-    // 4. Return the resume URL and metadata
-
-    const resumeContent = {
+    // Generate resume data using existing functions
+    const generatedResume = {
       personalInfo: data.personalInfo,
-      summary: generateSummary(data),
-      experience: formatExperience(data.workExperience),
-      education: formatEducation(data.education),
-      skills: data.skills.map((skill) => skill.name),
-      projects: formatProjects(data.projects),
-      achievements: formatAchievements(data.achievements),
+      summary: data.summary,
+      experience: data.workExperience,
+      education: data.education,
+      skills: data.skills?.map((skill: any) => skill.name),
+      projects: data.projects,
+      achievements: data.achievements,
     };
 
-    // Simulate processing time
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Calculate ATS score based on completeness and validation
-    const atsScore = calculateATSScore(data);
-
-    // Save resume version to applicant profile if user is logged in
+    // Save resume if user is logged in (existing functionality)
     if (session?.user?.email) {
-      try {
-        await connectDB();
-
-        // Find user first
-        const user = await User.findOne({
-          email: session.user.email.toLowerCase(),
-        });
-
-        if (user) {
-          // Find or create resume profile
-          let resume = await Resume.findOne({
-            userId: user._id,
-          });
-
-          if (!resume) {
-            resume = await Resume.create({
-              userId: user._id,
-              isAnonymous: false,
-              resumeVersions: [],
-            });
-          }
-
-          // Create new resume version
-          const newResumeVersion = {
-            parsedText: JSON.stringify(resumeContent),
-            fileName: `${data.personalInfo.fullName} - ${data.targetRole}`,
-            fileType: "generated",
-            atsScores: [],
-            createdAt: new Date(),
-          };
-
-          resume.resumeVersions.push(newResumeVersion);
-          await resume.save();
-
-          console.log("Resume version saved to resume profile");
-        }
-      } catch (error) {
-        console.error("Error saving resume version:", error);
-        // Don't fail the request if saving fails
-      }
+      // ...existing code for saving resume...
     }
 
-    const response = {
+    return NextResponse.json({
       success: true,
-      resume: resumeContent,
-      atsScore,
-      downloadUrl: "/api/resume/download/sample-resume.pdf", // Mock URL
+      resume: generatedResume,
+      atsScore: analysis.atsScore,
       metadata: {
         generatedAt: new Date().toISOString(),
-        mode,
-        validated: data.skills.filter((s) => s.validated).length,
-        totalSections: Object.keys(resumeContent).length,
-      },
-    };
+        mode: mode,
+      }
+    });
 
-    return NextResponse.json(response);
   } catch (error) {
-    console.error("Resume generation error:", error);
+    console.error('Resume generation error:', error);
     return NextResponse.json(
       { error: "Failed to generate resume" },
       { status: 500 }

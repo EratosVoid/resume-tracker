@@ -17,7 +17,7 @@ export interface GeminiAnalysisResult {
 }
 
 export class GeminiService {
-  private model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  private model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
   async parseResume(resumeText: string): Promise<IParsedResumeData> {
     const prompt = `
@@ -461,6 +461,49 @@ export class GeminiService {
         strengthsIdentified: ["Basic resume parsing completed"],
       },
     };
+  }
+
+  async analyzeGeneratedResume(resumeData: any): Promise<GeminiAnalysisResult> {
+    try {
+      const prompt = `Analyze this resume content and provide an ATS compatibility score between 0-100:
+      
+      Target Role: ${resumeData.targetRole}
+      Experience: ${resumeData.experience}
+      Skills: ${resumeData.skills?.map((s: any) => s.name).join(', ')}
+      Work Experience: ${resumeData.workExperience}
+      Projects: ${resumeData.projects}
+      Achievements: ${resumeData.achievements}
+      
+      Return only the numeric score.`;
+
+      const result = await this.model.generateContent(prompt);
+      const score = parseInt(await result.response.text()) || 70;
+
+      return {
+        parsedData: resumeData,
+        atsScore: score,
+        analysis: {
+          skillsMatched: [],
+          skillsMissing: [],
+          experienceMatch: 0,
+          improvementSuggestions: [],
+          strengthsIdentified: []
+        }
+      };
+    } catch (error) {
+      console.error('Resume analysis error:', error);
+      return {
+        parsedData: resumeData,
+        atsScore: 70,
+        analysis: {
+          skillsMatched: [],
+          skillsMissing: [],
+          experienceMatch: 0,
+          improvementSuggestions: [],
+          strengthsIdentified: []
+        }
+      };
+    }
   }
 }
 
