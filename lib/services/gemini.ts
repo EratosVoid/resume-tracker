@@ -463,63 +463,179 @@ export class GeminiService {
     };
   }
 
+  private extractJsonFromResponse(text: string): any {
+  // Method 1: Try to find JSON within code blocks first
+  const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+  if (codeBlockMatch) {
+    try {
+      return JSON.parse(codeBlockMatch[1].trim());
+    } catch (e) {
+      console.warn('Failed to parse JSON from code block:', e);
+    }
+  }
+
+  // Method 2: Find the first complete JSON object
+  let braceCount = 0;
+  let jsonStart = -1;
+  let jsonEnd = -1;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    
+    if (char === '{') {
+      if (braceCount === 0) {
+        jsonStart = i;
+      }
+      braceCount++;
+    } else if (char === '}') {
+      braceCount--;
+      if (braceCount === 0 && jsonStart !== -1) {
+        jsonEnd = i;
+        break;
+      }
+    }
+  }
+
+  if (jsonStart !== -1 && jsonEnd !== -1) {
+    const jsonString = text.substring(jsonStart, jsonEnd + 1);
+    try {
+      return JSON.parse(jsonString);
+    } catch (e) {
+      console.warn('Failed to parse extracted JSON:', e);
+    }
+  }
+
+  // Method 3: Try the original regex approach as fallback
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      console.warn('Failed to parse JSON with regex:', e);
+    }
+  }
+
+  throw new Error("No valid JSON found in response");
+}
+
   async analyzeGeneratedResume(resumeData: any): Promise<GeminiAnalysisResult> {
   try {
     // Format resume data for analysis
     const resumeText = `
-      Target Role: ${resumeData.targetRole}
-      Experience Level: ${resumeData.experience}
-      
-      Personal Info:
-      ${Object.entries(resumeData.personalInfo || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
-      
-      Skills:
-      ${resumeData.skills?.map((s: any) => s.name).join(', ')}
-      
-      Work Experience:
-      ${resumeData.workExperience?.join('\n')}
-      
-      Projects:
-      ${resumeData.projects?.join('\n')}
-      
-      Education:
-      ${resumeData.education?.join('\n')}
-      
-      Achievements:
-      ${resumeData.achievements?.join('\n')}
-    `;
+    Target Role: ${resumeData.targetRole || 'Not specified'}
+    Experience Level: ${resumeData.experience || 'Not specified'}
 
-    // Get ATS score from Gemini
-    const atsPrompt = `As an ATS expert, analyze this resume and provide a score between 0-100 based on:
-    - Content relevance to target role
-    - Skills alignment
-    - Experience quality
-    - Overall completeness
-    
-    Resume:
+    Personal Info:
+    ${Object.entries(resumeData.personalInfo || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}
+
+    Skills:
+    ${resumeData.skills?.map((s: any) => s.name || s).join(', ') || 'No skills listed'}
+
+    Work Experience:
+    ${resumeData.workExperience?.join('\n') || 'No work experience listed'}
+
+    Projects:
+    ${resumeData.projects?.join('\n') || 'No projects listed'}
+
+    Education:
+    ${resumeData.education?.join('\n') || 'No education listed'}
+
+    Achievements:
+    ${resumeData.achievements?.join('\n') || 'No achievements listed'}
+        `.trim();
+
+        // Improved prompt with clearer instructions
+        const prompt = `You are an ATS resume analyzer. Analyze the following resume and provide your response in EXACTLY this JSON format with no additional text or explanation:
+
+    {
+      "atsScore": number (0-100),
+      "validatedSkills": ["skill1", "skill2"],
+      "completeSections": ["section1", "section2"],
+      "nextSteps": ["step1", "step2"]
+    }
+
+    ANALYSIS REQUIREMENTS:
+    1. atsScore: Rate ATS compatibility from 0-100 based on keyword density, formatting, and completeness
+    2. validatedSkills: List the actual skills found in the resume (not "0")
+    3. completeSections: List sections that are well-filled from: ["Summary", "Experience", "Education", "Skills", "Projects", "Achievements"]
+    4. nextSteps: Provide 3-5 specific improvement suggestions
+
+    Resume to analyze:
     ${resumeText}
-    
-    Return only a number between 0-100.`;
 
-    const atsResult = await this.model.generateContent(atsPrompt);
-    const atsScoreText = await atsResult.response.text();
-    const atsScore = parseInt(atsScoreText.trim()) || 70; // Fallback to 70 only if parsing fails
+    IMPORTANT: Return ONLY the JSON object, no markdown formatting, no explanations, no additional text.`;
 
-    // Return analysis with actual ATS score
+    const result = await this.model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('Raw Gemini response:', text); // Debug log
+
+    // Use the improved JSON extraction
+    const analysis = this.extractJsonFromResponse(text);
+
+    // Validate the response structure
+    const validatedAnalysis = {
+      atsScore: typeof analysis.atsScore === 'number' ? 
+        Math.min(100, Math.max(0, analysis.atsScore)) : 70,
+      validatedSkills: Array.isArray(analysis.validatedSkills) ? 
+        analysis.validatedSkills : [],
+      completeSections: Array.isArray(analysis.completeSections) ? 
+        analysis.completeSections : [],
+      nextSteps: Array.isArray(analysis.nextSteps) ? 
+        analysis.nextSteps : ['Add more specific details', 'Include quantifiable achievements']
+    };
+
     return {
       parsedData: resumeData,
-      atsScore: atsScore, // Using actual score from Gemini
+      atsScore: validatedAnalysis.atsScore,
       analysis: {
-        skillsMatched: [],
+        skillsMatched: validatedAnalysis.validatedSkills,
         skillsMissing: [],
         experienceMatch: 0,
-        improvementSuggestions: [],
-        strengthsIdentified: []
+        improvementSuggestions: validatedAnalysis.nextSteps,
+        strengthsIdentified: validatedAnalysis.completeSections
       }
     };
+
   } catch (error) {
     console.error('Resume analysis error:', error);
-    throw error; // Let the calling code handle the error
+    
+    // Enhanced fallback analysis
+    const fallbackSkills = resumeData.skills?.map((s: any) => s.name || s).filter(Boolean) || [];
+    const hasContent = {
+      summary: !!(resumeData.summary || resumeData.personalInfo),
+      experience: !!(resumeData.workExperience && resumeData.workExperience.length > 0),
+      education: !!(resumeData.education && resumeData.education.length > 0),
+      skills: fallbackSkills.length > 0,
+      projects: !!(resumeData.projects && resumeData.projects.length > 0),
+      achievements: !!(resumeData.achievements && resumeData.achievements.length > 0)
+    };
+
+    const completeSections = Object.entries(hasContent)
+      .filter(([_, hasData]) => hasData)
+      .map(([section, _]) => section.charAt(0).toUpperCase() + section.slice(1));
+
+    const baseScore = completeSections.length * 15; // 15 points per complete section
+    const skillBonus = Math.min(fallbackSkills.length * 2, 10); // Up to 10 bonus points for skills
+
+    return {
+      parsedData: resumeData,
+      atsScore: Math.min(90, baseScore + skillBonus), // Cap at 90 for fallback
+      analysis: {
+        skillsMatched: fallbackSkills,
+        skillsMissing: [],
+        experienceMatch: 0,
+        improvementSuggestions: [
+          'Add more quantifiable achievements with specific metrics',
+          'Include industry-relevant keywords and technical skills',
+          'Expand project descriptions with technologies used',
+          'Add professional summary highlighting key strengths',
+          'Ensure consistent formatting throughout the document'
+        ],
+        strengthsIdentified: completeSections
+      }
+    };
   }
 }
 }
