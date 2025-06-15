@@ -130,7 +130,7 @@ export default function HomePage() {
     {
       icon: RocketIcon,
       title: "Scalable Solution",
-      description: "Handle thousands of applications effortlessly",
+      description: "Seamlessly manage thousands of applications with ease.",
       metric: "Unlimited Scale",
     },
   ];
