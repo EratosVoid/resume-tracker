@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     if (validatedData.createProfile) {
       // Check if user already exists
-      let user = await User.findOne({
+      let user: any = await User.findOne({
         email: validatedData.applicantEmail,
       });
 

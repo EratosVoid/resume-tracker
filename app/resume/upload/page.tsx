@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { ArrowLeftIcon } from "lucide-react";
-import { Input, Textarea } from "@nextui-org/react";
+import { Input, Textarea } from "@heroui/react";
 
 // Import our new components
 import UploadZone from "./components/UploadZone";

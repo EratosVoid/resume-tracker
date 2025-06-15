@@ -86,12 +86,12 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { shareableId: string } }
+  { params }: { params: Promise<{ shareableId: string }> }
 ) {
   try {
     await connectDB();
 
-    const { shareableId } = params;
+    const { shareableId } = await params;
     const body = await request.json();
     const { isPublic } = body;
 
