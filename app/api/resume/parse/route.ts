@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
+import mammoth from "mammoth";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
 
@@ -14,8 +15,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Convert file to bytes for Gemini
+    // Check if it's a DOC file (legacy format) - skip with error
+    if (file.type === "application/msword") {
+      return NextResponse.json(
+        {
+          error:
+            "DOC files are not supported. Please convert to DOCX, PDF, or TXT format.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Convert file to buffer
     const buffer = await file.arrayBuffer();
+    let resumeText = "";
+    let isTextBased = false;
+
+    // Handle DOCX files by extracting text
+    if (
+      file.type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      try {
+        const result = await mammoth.extractRawText({
+          buffer: Buffer.from(buffer),
+        });
+        resumeText = result.value;
+        isTextBased = true;
+        console.log(
+          "Extracted text from DOCX:",
+          resumeText.substring(0, 200) + "..."
+        );
+      } catch (error) {
+        console.error("Error parsing DOCX:", error);
+        return NextResponse.json(
+          {
+            error: "Failed to parse DOCX file. Please try a different format.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+    // Handle TXT files
+    else if (file.type === "text/plain") {
+      resumeText = new TextDecoder().decode(buffer);
+      isTextBased = true;
+    }
+
     const bytes = new Uint8Array(buffer);
 
     // Initialize Gemini model
@@ -270,16 +316,25 @@ export async function POST(request: NextRequest) {
     Return ONLY the JSON object with no additional text or formatting.
     `;
 
-    // Send file and prompt to Gemini
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: file.type,
-          data: Buffer.from(bytes).toString("base64"),
+    // Send data to Gemini
+    let result;
+    if (isTextBased) {
+      // For text-based files (DOCX, TXT), send extracted text
+      result = await model.generateContent([
+        prompt + "\n\nRESUME CONTENT:\n" + resumeText,
+      ]);
+    } else {
+      // For other files (PDF, images), send binary data
+      result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            mimeType: file.type,
+            data: Buffer.from(bytes).toString("base64"),
+          },
         },
-      },
-    ]);
+      ]);
+    }
 
     const response = await result.response;
     const text = response.text();

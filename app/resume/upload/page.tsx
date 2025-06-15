@@ -75,7 +75,6 @@ export default function ResumeUploadPage() {
       "text/plain",
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/msword",
       "image/jpeg",
       "image/png",
       "image/jpg",
@@ -83,6 +82,14 @@ export default function ResumeUploadPage() {
 
     if (!allowedTypes.includes(file.type)) {
       toast.error("Please upload a PDF, DOCX, TXT, or image file (JPG, PNG)");
+      return;
+    }
+
+    // Check for DOC files specifically and show helpful message
+    if (file.type === "application/msword") {
+      toast.error(
+        "DOC files are not supported. Please convert to DOCX, PDF, or TXT format."
+      );
       return;
     }
 
@@ -361,16 +368,14 @@ export default function ResumeUploadPage() {
                         📋 Supported Formats
                       </h4>
                       <div className="flex flex-wrap justify-center gap-2">
-                        {["PDF", "DOCX", "DOC", "TXT", "JPG", "PNG"].map(
-                          (format) => (
-                            <span
-                              key={format}
-                              className="px-3 py-1 bg-white dark:bg-gray-700 border border-default-200 rounded-lg text-sm font-medium text-default-600"
-                            >
-                              {format}
-                            </span>
-                          )
-                        )}
+                        {["PDF", "DOCX", "TXT", "JPG", "PNG"].map((format) => (
+                          <span
+                            key={format}
+                            className="px-3 py-1 bg-white dark:bg-gray-700 border border-default-200 rounded-lg text-sm font-medium text-default-600"
+                          >
+                            {format}
+                          </span>
+                        ))}
                       </div>
                       <p className="text-center text-xs text-default-500 mt-2">
                         Maximum file size: 5MB
