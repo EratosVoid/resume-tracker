@@ -763,8 +763,7 @@ export default function ResumeTimeline({
                                   </label>
                                   <p className="text-sm bg-default-50 p-2 rounded">
                                     {selectedResume.detailedAnalysis
-                                      ?.location ||
-                                      "Not specified"}
+                                      ?.location || "Not specified"}
                                   </p>
                                 </div>
                               </div>
@@ -774,8 +773,8 @@ export default function ResumeTimeline({
                                     Professional Summary
                                   </label>
                                   <p className="text-sm bg-default-50 p-2 rounded max-h-20 overflow-y-auto">
-                                    {selectedResume.detailedAnalysis
-                                      ?.summary || "Not provided"}
+                                    {selectedResume.detailedAnalysis?.summary ||
+                                      "Not provided"}
                                   </p>
                                 </div>
                                 <div>
@@ -783,8 +782,8 @@ export default function ResumeTimeline({
                                     Technical Skills
                                   </label>
                                   <div className="bg-default-50 p-2 rounded">
-                                    {selectedResume.detailedAnalysis
-                                      ?.skills.length > 0 ? (
+                                    {selectedResume.detailedAnalysis?.skills
+                                      .length > 0 ? (
                                       <div className="flex flex-wrap gap-1">
                                         {selectedResume.detailedAnalysis?.skills.map(
                                           (skill, index) => (
