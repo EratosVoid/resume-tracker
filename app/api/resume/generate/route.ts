@@ -21,15 +21,49 @@ interface Skill {
   validated: boolean;
 }
 
+interface WorkExperience {
+  company: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  achievements: string[];
+}
+
+interface Education {
+  school: string;
+  degree: string;
+  field: string;
+  graduationYear: string;
+  gpa?: string;
+  honors?: string;
+}
+
+interface Project {
+  name: string;
+  description: string;
+  technologies: string[];
+  link?: string;
+  github?: string;
+  achievements: string[];
+}
+
+interface Achievement {
+  title: string;
+  description: string;
+  date: string;
+  proof?: string;
+}
+
 interface ResumeData {
   personalInfo: PersonalInfo;
   targetRole: string;
   experience: string;
   skills: Skill[];
-  workExperience: any[];
-  education: any[];
-  projects: any[];
-  achievements: any[];
+  workExperience: WorkExperience[];
+  education: Education[];
+  projects: Project[];
+  achievements: Achievement[];
 }
 
 interface RequestBody {
@@ -43,22 +77,25 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     const body = await request.json();
     const { data, mode, collectedData } = body;
-    
+
     // Initialize GeminiService for analysis
     const geminiService = new GeminiService();
 
     // Get ATS analysis using existing method
     const analysis = await geminiService.analyzeGeneratedResume(data);
 
+    // Generate summary and format data
+    const summary = generateSummary(data);
+
     // Generate resume data using existing functions
     const generatedResume = {
       personalInfo: data.personalInfo,
-      summary: data.summary,
-      experience: data.workExperience,
-      education: data.education,
-      skills: data.skills?.map((skill: any) => skill.name),
-      projects: data.projects,
-      achievements: data.achievements,
+      summary: summary,
+      experience: formatExperience(data.workExperience),
+      education: formatEducation(data.education),
+      skills: data.skills?.map((skill: any) => skill.name) || [],
+      projects: formatProjects(data.projects),
+      achievements: formatAchievements(data.achievements),
     };
 
     // Save resume if user is logged in (existing functionality)
@@ -66,18 +103,28 @@ export async function POST(request: NextRequest) {
       // ...existing code for saving resume...
     }
 
+    // Calculate ATS score
+    const atsScore = calculateATSScore(data);
+
     return NextResponse.json({
       success: true,
       resume: generatedResume,
-      atsScore: analysis.atsScore,
+      atsScore: atsScore,
       metadata: {
         generatedAt: new Date().toISOString(),
         mode: mode,
-      }
+        validated: data.skills.filter((s: Skill) => s.validated).length,
+        totalSections: [
+          data.workExperience.length > 0,
+          data.education.length > 0,
+          data.projects.length > 0,
+          data.achievements.length > 0,
+          data.skills.length > 0,
+        ].filter(Boolean).length,
+      },
     });
-
   } catch (error) {
-    console.error('Resume generation error:', error);
+    console.error("Resume generation error:", error);
     return NextResponse.json(
       { error: "Failed to generate resume" },
       { status: 500 }
@@ -90,39 +137,65 @@ function generateSummary(data: ResumeData): string {
   return `Experienced ${targetRole} with ${experience} of professional experience. Proven track record of delivering high-quality results and driving business growth.`;
 }
 
-function formatExperience(workExperience: any[]): any[] {
+function formatExperience(workExperience: WorkExperience[]): any[] {
   return workExperience.map((exp) => {
     if (typeof exp === "string") {
       return { description: exp };
     }
-    return exp;
+    return {
+      company: exp.company,
+      title: exp.title,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      description: exp.description,
+      achievements: exp.achievements || [],
+    };
   });
 }
 
-function formatEducation(education: any[]): any[] {
+function formatEducation(education: Education[]): any[] {
   return education.map((edu) => {
     if (typeof edu === "string") {
       return { description: edu };
     }
-    return edu;
+    return {
+      school: edu.school,
+      degree: edu.degree,
+      field: edu.field,
+      graduationYear: edu.graduationYear,
+      gpa: edu.gpa,
+      honors: edu.honors,
+    };
   });
 }
 
-function formatProjects(projects: any[]): any[] {
+function formatProjects(projects: Project[]): any[] {
   return projects.map((project) => {
     if (typeof project === "string") {
       return { description: project };
     }
-    return project;
+    return {
+      name: project.name,
+      description: project.description,
+      technologies: project.technologies || [],
+      link: project.link,
+      github: project.github,
+      achievements: project.achievements || [],
+    };
   });
 }
 
-function formatAchievements(achievements: any[]): any[] {
+function formatAchievements(achievements: Achievement[]): any[] {
   return achievements.map((achievement) => {
     if (typeof achievement === "string") {
       return { description: achievement };
     }
-    return achievement;
+    return {
+      title: achievement.title,
+      description: achievement.description,
+      date: achievement.date,
+      proof: achievement.proof,
+    };
   });
 }
 
@@ -166,7 +239,7 @@ function calculateATSScore(data: ResumeData): number {
   // Work experience (15 points)
   if (
     data.workExperience.length > 0 &&
-    data.workExperience.some((exp) => exp && exp.toString().trim())
+    data.workExperience.some((exp) => exp && exp.company && exp.title)
   ) {
     score += 15;
   }
@@ -174,7 +247,7 @@ function calculateATSScore(data: ResumeData): number {
   // Education (10 points)
   if (
     data.education.length > 0 &&
-    data.education.some((edu) => edu && edu.toString().trim())
+    data.education.some((edu) => edu && edu.school && edu.degree)
   ) {
     score += 10;
   }
@@ -182,7 +255,7 @@ function calculateATSScore(data: ResumeData): number {
   // Projects (10 points)
   if (
     data.projects.length > 0 &&
-    data.projects.some((proj) => proj && proj.toString().trim())
+    data.projects.some((proj) => proj && proj.name && proj.description)
   ) {
     score += 10;
   }
@@ -190,7 +263,7 @@ function calculateATSScore(data: ResumeData): number {
   // Achievements (5 points)
   if (
     data.achievements.length > 0 &&
-    data.achievements.some((ach) => ach && ach.toString().trim())
+    data.achievements.some((ach) => ach && ach.title && ach.description)
   ) {
     score += 5;
   }

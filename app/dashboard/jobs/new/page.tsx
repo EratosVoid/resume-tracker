@@ -71,7 +71,6 @@ interface JobFormData {
 }
 
 export default function NewJobPage() {
-  const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);

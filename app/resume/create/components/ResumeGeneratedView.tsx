@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -51,6 +52,7 @@ interface ResumeGeneratedViewProps {
   onBack: () => void;
   onEdit: () => void;
   creationMode: "form" | "chat";
+  structuredData?: any; // The original form/chat data
 }
 
 export default function ResumeGeneratedView({
@@ -58,7 +60,15 @@ export default function ResumeGeneratedView({
   onBack,
   onEdit,
   creationMode,
+  structuredData,
 }: ResumeGeneratedViewProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<{
+    success: boolean;
+    shareUrl?: string;
+    message?: string;
+  } | null>(null);
+
   const getScoreColor = (score: number) => {
     if (score >= 90) return "success";
     if (score >= 70) return "warning";
@@ -69,6 +79,58 @@ export default function ResumeGeneratedView({
     if (score >= 90) return "Excellent";
     if (score >= 70) return "Good";
     return "Needs Improvement";
+  };
+
+  const handleSaveResume = async (isPublic: boolean = false) => {
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/resume/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          structuredData,
+          generatedResume: resumeData.resume,
+          creationMode,
+          atsScore: resumeData.atsScore,
+          isPublic,
+          isAnonymous: true, // For now, treating all as anonymous
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSaveResult({
+          success: true,
+          shareUrl: result.shareUrl,
+          message: "Resume saved successfully!",
+        });
+      } else {
+        setSaveResult({
+          success: false,
+          message: result.error || "Failed to save resume",
+        });
+      }
+    } catch (error) {
+      setSaveResult({
+        success: false,
+        message: "An error occurred while saving",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleShare = () => {
+    if (saveResult?.shareUrl) {
+      navigator.clipboard.writeText(saveResult.shareUrl);
+      // You could add a toast notification here
+    } else {
+      // Save as public first, then share
+      handleSaveResume(true);
+    }
   };
 
   return (
@@ -103,10 +165,18 @@ export default function ResumeGeneratedView({
             <div className="flex gap-3">
               <Button
                 variant="bordered"
-                startContent={<EditIcon className="h-4 w-4" />}
+                startContent={<SparklesIcon className="h-4 w-4" />}
                 onPress={onEdit}
               >
-                Edit Resume
+                Create New Resume
+              </Button>
+              <Button
+                variant="bordered"
+                startContent={<ShareIcon className="h-4 w-4" />}
+                onPress={handleShare}
+                isLoading={isSaving}
+              >
+                {saveResult?.shareUrl ? "Copy Link" : "Save & Share"}
               </Button>
               <Button
                 color="primary"
@@ -127,143 +197,318 @@ export default function ResumeGeneratedView({
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between w-full">
                   <h2 className="text-xl font-bold">Resume Preview</h2>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      startContent={<ShareIcon className="h-4 w-4" />}
-                    >
-                      Share
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="primary"
-                      startContent={<DownloadIcon className="h-4 w-4" />}
-                    >
-                      Download
-                    </Button>
-                  </div>
                 </div>
               </CardHeader>
-              <CardBody>
-                <div className="bg-white dark:bg-gray-900 border rounded-lg p-8 min-h-[800px] shadow-sm space-y-6">
-                  {/* Personal Info */}
-                  <div>
-                    <h2 className="text-2xl font-bold mb-2">
-                      {resumeData.resume.personalInfo.fullName}
-                    </h2>
-                    <div className="flex flex-wrap gap-4 text-sm text-default-600 mb-4">
-                      {resumeData.resume.personalInfo.email && (
-                        <span>{resumeData.resume.personalInfo.email}</span>
-                      )}
-                      {resumeData.resume.personalInfo.phone && (
-                        <span>{resumeData.resume.personalInfo.phone}</span>
-                      )}
-                      {resumeData.resume.personalInfo.location && (
-                        <span>{resumeData.resume.personalInfo.location}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Summary */}
-                  {resumeData.resume.summary && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">
-                        Professional Summary
-                      </h3>
-                      <p className="text-default-700">
-                        {resumeData.resume.summary}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Skills */}
-                  {resumeData.resume.skills?.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Skills</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {resumeData.resume.skills.map((skill, index) => (
-                          <Chip key={index} variant="flat" size="sm">
-                            {skill}
-                          </Chip>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Experience */}
-                  {resumeData.resume.experience?.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Experience</h3>
-                      <div className="space-y-3">
-                        {resumeData.resume.experience.map((exp, index) => (
-                          <div
-                            key={index}
-                            className="border-l-2 border-primary/20 pl-4"
+              <CardBody className="p-0">
+                <div className="bg-white dark:bg-gray-50 border rounded-lg min-h-[1000px] shadow-lg overflow-hidden">
+                  {/* Resume Paper */}
+                  <div className="max-w-[8.5in] mx-auto bg-white p-12 min-h-[11in] text-gray-900 font-serif leading-relaxed">
+                    {/* Header Section */}
+                    <div className="text-center border-b-2 border-gray-300 pb-6 mb-8">
+                      <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-wide">
+                        {resumeData.resume.personalInfo.fullName}
+                      </h1>
+                      <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
+                        {resumeData.resume.personalInfo.email && (
+                          <span className="flex items-center gap-1">
+                            <span>✉</span>
+                            {resumeData.resume.personalInfo.email}
+                          </span>
+                        )}
+                        {resumeData.resume.personalInfo.phone && (
+                          <span className="flex items-center gap-1">
+                            <span>📞</span>
+                            {resumeData.resume.personalInfo.phone}
+                          </span>
+                        )}
+                        {resumeData.resume.personalInfo.location && (
+                          <span className="flex items-center gap-1">
+                            <span>📍</span>
+                            {resumeData.resume.personalInfo.location}
+                          </span>
+                        )}
+                        {resumeData.resume.personalInfo.linkedin && (
+                          <a
+                            href={
+                              resumeData.resume.personalInfo.linkedin.startsWith(
+                                "http"
+                              )
+                                ? resumeData.resume.personalInfo.linkedin
+                                : `https://${resumeData.resume.personalInfo.linkedin}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
                           >
-                            <p className="text-default-700">
-                              {typeof exp === "string"
-                                ? exp
-                                : exp.description || "Experience details"}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Education */}
-                  {resumeData.resume.education?.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Education</h3>
-                      <div className="space-y-2">
-                        {resumeData.resume.education.map((edu, index) => (
-                          <p key={index} className="text-default-700">
-                            {typeof edu === "string"
-                              ? edu
-                              : edu.description || "Education details"}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Projects */}
-                  {resumeData.resume.projects?.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Projects</h3>
-                      <div className="space-y-2">
-                        {resumeData.resume.projects.map((project, index) => (
-                          <p key={index} className="text-default-700">
-                            {typeof project === "string"
-                              ? project
-                              : project.description || "Project details"}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Achievements */}
-                  {resumeData.resume.achievements?.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">
-                        Achievements
-                      </h3>
-                      <div className="space-y-2">
-                        {resumeData.resume.achievements.map(
-                          (achievement, index) => (
-                            <p key={index} className="text-default-700">
-                              {typeof achievement === "string"
-                                ? achievement
-                                : achievement.description ||
-                                  "Achievement details"}
-                            </p>
-                          )
+                            <span>💼</span>
+                            {resumeData.resume.personalInfo.linkedin
+                              .replace(/^https?:\/\//, "")
+                              .replace(/^www\./, "")}
+                          </a>
+                        )}
+                        {resumeData.resume.personalInfo.portfolio && (
+                          <a
+                            href={
+                              resumeData.resume.personalInfo.portfolio.startsWith(
+                                "http"
+                              )
+                                ? resumeData.resume.personalInfo.portfolio
+                                : `https://${resumeData.resume.personalInfo.portfolio}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            <span>🌐</span>
+                            {resumeData.resume.personalInfo.portfolio
+                              .replace(/^https?:\/\//, "")
+                              .replace(/^www\./, "")}
+                          </a>
                         )}
                       </div>
                     </div>
-                  )}
+
+                    {/* Professional Summary */}
+                    {resumeData.resume.summary && (
+                      <div className="mb-8">
+                        <h2 className="text-xl font-bold text-gray-900 mb-3 uppercase tracking-wider border-b border-gray-400 pb-1">
+                          Professional Summary
+                        </h2>
+                        <p className="text-gray-700 leading-relaxed text-justify">
+                          {resumeData.resume.summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Skills */}
+                    {resumeData.resume.skills?.length > 0 && (
+                      <div className="mb-8">
+                        <h2 className="text-xl font-bold text-gray-900 mb-3 uppercase tracking-wider border-b border-gray-400 pb-1">
+                          Core Competencies
+                        </h2>
+                        <div className="grid grid-cols-3 gap-2">
+                          {resumeData.resume.skills.map((skill, index) => (
+                            <div key={index} className="text-gray-700 text-sm">
+                              • {skill}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Professional Experience */}
+                    {resumeData.resume.experience?.length > 0 && (
+                      <div className="mb-8">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wider border-b border-gray-400 pb-1">
+                          Professional Experience
+                        </h2>
+                        <div className="space-y-6">
+                          {resumeData.resume.experience.map((exp, index) => (
+                            <div key={index} className="relative">
+                              {typeof exp === "object" && exp.company ? (
+                                <div>
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                      <h3 className="text-lg font-semibold text-gray-900">
+                                        {exp.title}
+                                      </h3>
+                                      <p className="text-gray-700 font-medium">
+                                        {exp.company}
+                                      </p>
+                                    </div>
+                                    <div className="text-right text-sm text-gray-600">
+                                      <p>
+                                        {exp.startDate} - {exp.endDate}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-700 mb-3 leading-relaxed">
+                                    {exp.description}
+                                  </p>
+                                  {exp.achievements &&
+                                    exp.achievements.length > 0 && (
+                                      <ul className="list-none space-y-1 ml-4">
+                                        {exp.achievements.map(
+                                          (
+                                            achievement: string,
+                                            achIndex: number
+                                          ) => (
+                                            <li
+                                              key={achIndex}
+                                              className="text-gray-700 text-sm relative"
+                                            >
+                                              <span className="absolute -left-4 text-gray-500">
+                                                ▸
+                                              </span>
+                                              {achievement}
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    )}
+                                </div>
+                              ) : (
+                                <div className="text-gray-700 leading-relaxed">
+                                  {typeof exp === "string"
+                                    ? exp
+                                    : exp.description || "Experience details"}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Education */}
+                    {resumeData.resume.education?.length > 0 && (
+                      <div className="mb-8">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wider border-b border-gray-400 pb-1">
+                          Education
+                        </h2>
+                        <div className="space-y-4">
+                          {resumeData.resume.education.map((edu, index) => (
+                            <div key={index}>
+                              {typeof edu === "object" && edu.school ? (
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                      {edu.degree} in {edu.field}
+                                    </h3>
+                                    <p className="text-gray-700 font-medium">
+                                      {edu.school}
+                                    </p>
+                                    <div className="flex gap-4 text-sm text-gray-600 mt-1">
+                                      {edu.gpa && <span>GPA: {edu.gpa}</span>}
+                                      {edu.honors && (
+                                        <span className="font-medium text-gray-700">
+                                          {edu.honors}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="text-right text-sm text-gray-600">
+                                    <p>Graduated {edu.graduationYear}</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-gray-700">
+                                  {typeof edu === "string"
+                                    ? edu
+                                    : edu.description || "Education details"}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Projects */}
+                    {resumeData.resume.projects?.length > 0 && (
+                      <div className="mb-8">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wider border-b border-gray-400 pb-1">
+                          Key Projects
+                        </h2>
+                        <div className="space-y-4">
+                          {resumeData.resume.projects.map((project, index) => (
+                            <div key={index}>
+                              {typeof project === "object" && project.name ? (
+                                <div>
+                                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                    {project.name}
+                                  </h3>
+                                  <p className="text-gray-700 mb-2 leading-relaxed">
+                                    {project.description}
+                                  </p>
+                                  {project.technologies &&
+                                    project.technologies.length > 0 && (
+                                      <div className="mb-2">
+                                        <span className="text-sm font-medium text-gray-600">
+                                          Technologies:{" "}
+                                        </span>
+                                        <span className="text-sm text-gray-700">
+                                          {project.technologies.join(", ")}
+                                        </span>
+                                      </div>
+                                    )}
+                                  {project.achievements &&
+                                    project.achievements.length > 0 && (
+                                      <ul className="list-none space-y-1 ml-4">
+                                        {project.achievements.map(
+                                          (
+                                            achievement: string,
+                                            achIndex: number
+                                          ) => (
+                                            <li
+                                              key={achIndex}
+                                              className="text-gray-700 text-sm relative"
+                                            >
+                                              <span className="absolute -left-4 text-gray-500">
+                                                ▸
+                                              </span>
+                                              {achievement}
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    )}
+                                </div>
+                              ) : (
+                                <p className="text-gray-700">
+                                  {typeof project === "string"
+                                    ? project
+                                    : project.description || "Project details"}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Achievements & Awards */}
+                    {resumeData.resume.achievements?.length > 0 && (
+                      <div className="mb-8">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4 uppercase tracking-wider border-b border-gray-400 pb-1">
+                          Achievements & Awards
+                        </h2>
+                        <div className="space-y-3">
+                          {resumeData.resume.achievements.map(
+                            (achievement, index) => (
+                              <div key={index}>
+                                {typeof achievement === "object" &&
+                                achievement.title ? (
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <h3 className="font-semibold text-gray-900">
+                                        {achievement.title}
+                                      </h3>
+                                      <p className="text-gray-700 text-sm leading-relaxed">
+                                        {achievement.description}
+                                      </p>
+                                    </div>
+                                    {achievement.date && (
+                                      <div className="text-sm text-gray-600 ml-4">
+                                        {achievement.date}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-gray-700">
+                                    {typeof achievement === "string"
+                                      ? achievement
+                                      : achievement.description ||
+                                        "Achievement details"}
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardBody>
             </Card>
@@ -421,33 +666,51 @@ export default function ResumeGeneratedView({
                   </Button>
 
                   <Button
+                    color="secondary"
+                    className="w-full"
+                    startContent={<SparklesIcon className="h-5 w-5" />}
+                    onPress={() => handleSaveResume(false)}
+                    isLoading={isSaving}
+                    isDisabled={saveResult?.success}
+                  >
+                    {saveResult?.success ? "Saved!" : "Save Resume"}
+                  </Button>
+
+                  <Button
                     variant="bordered"
                     className="w-full"
                     startContent={<ShareIcon className="h-5 w-5" />}
+                    onPress={handleShare}
+                    isLoading={isSaving}
                   >
-                    Share Resume Link
+                    {saveResult?.shareUrl ? "Copy Share Link" : "Save & Share"}
                   </Button>
 
-                  <Divider />
-
-                  <Link href="/applicant" className="w-full">
-                    <Button
-                      variant="bordered"
-                      className="w-full"
-                      startContent={<UserIcon className="h-5 w-5" />}
+                  {saveResult && (
+                    <div
+                      className={`p-3 rounded-lg text-sm ${
+                        saveResult.success
+                          ? "bg-success/10 text-success border border-success/20"
+                          : "bg-danger/10 text-danger border border-danger/20"
+                      }`}
                     >
-                      View My Dashboard
-                    </Button>
-                  </Link>
-
-                  <Button
-                    variant="light"
-                    className="w-full"
-                    startContent={<EditIcon className="h-5 w-5" />}
-                    onPress={onEdit}
-                  >
-                    Edit This Resume
-                  </Button>
+                      <div className="flex items-start gap-2">
+                        {saveResult.success ? (
+                          <CheckCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <span className="text-lg">⚠️</span>
+                        )}
+                        <div>
+                          <p>{saveResult.message}</p>
+                          {saveResult.shareUrl && (
+                            <p className="text-xs mt-1 opacity-80">
+                              Share URL copied to clipboard
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardBody>
               </Card>
             </motion.div>

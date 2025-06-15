@@ -17,6 +17,40 @@ interface Skill {
   validated: boolean;
 }
 
+interface WorkExperience {
+  company: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  achievements: string[];
+}
+
+interface Education {
+  school: string;
+  degree: string;
+  field: string;
+  graduationYear: string;
+  gpa?: string;
+  honors?: string;
+}
+
+interface Project {
+  name: string;
+  description: string;
+  technologies: string[];
+  link?: string;
+  github?: string;
+  achievements: string[];
+}
+
+interface Achievement {
+  title: string;
+  description: string;
+  date: string;
+  proof?: string;
+}
+
 interface FormData {
   personalInfo: {
     fullName: string;
@@ -29,10 +63,10 @@ interface FormData {
   targetRole: string;
   experience: string;
   skills: Skill[];
-  workExperience: any[];
-  education: any[];
-  projects: any[];
-  achievements: any[];
+  workExperience: WorkExperience[];
+  education: Education[];
+  projects: Project[];
+  achievements: Achievement[];
 }
 
 interface GeneratedResumeResponse {
@@ -66,65 +100,43 @@ export default function ResumeCreatePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResume, setGeneratedResume] =
     useState<GeneratedResumeResponse | null>(null);
+  const [originalStructuredData, setOriginalStructuredData] =
+    useState<FormData | null>(null);
 
-  // Convert chat data to FormData structure
-  const convertChatDataToFormData = (
-    collectedData: Record<string, any>
-  ): FormData => {
-    console.log("Converting chat data:", collectedData);
+  // Validate and ensure FormData structure is complete
+  const validateFormData = (data: FormData): FormData => {
+    console.log("Validating form data:", data);
 
-    const skills = collectedData.skills
-      ? collectedData.skills.split(",").map((skill: string) => ({
-          name: skill.trim(),
-          proof:
-            collectedData.workExperience_proof ||
-            collectedData.projects_proof ||
-            collectedData.achievements_proof ||
-            "",
-          validated: !!(
-            collectedData.workExperience_proof ||
-            collectedData.projects_proof ||
-            collectedData.achievements_proof
-          ),
-        }))
-      : [];
-
-    const formData: FormData = {
+    // Ensure all required fields have default values
+    const validatedData: FormData = {
       personalInfo: {
-        fullName: collectedData.fullName || "",
-        email: collectedData.email || "",
-        phone: collectedData.phone || "",
-        location: collectedData.location || "",
-        linkedin: collectedData.linkedin || "",
-        portfolio: collectedData.portfolio || "",
+        fullName: data.personalInfo?.fullName || "",
+        email: data.personalInfo?.email || "",
+        phone: data.personalInfo?.phone || "",
+        location: data.personalInfo?.location || "",
+        linkedin: data.personalInfo?.linkedin || "",
+        portfolio: data.personalInfo?.portfolio || "",
       },
-      targetRole: collectedData.targetRole || "",
-      experience: collectedData.experienceLevel || "",
-      skills: skills,
-      workExperience: collectedData.workExperience
-        ? [collectedData.workExperience]
-        : [],
-      education: collectedData.education ? [collectedData.education] : [],
-      projects: collectedData.projects ? [collectedData.projects] : [],
-      achievements: collectedData.achievements
-        ? [collectedData.achievements]
-        : [],
+      targetRole: data.targetRole || "",
+      experience: data.experience || "",
+      skills: data.skills || [],
+      workExperience: data.workExperience || [],
+      education: data.education || [],
+      projects: data.projects || [],
+      achievements: data.achievements || [],
     };
 
-    console.log("Converted form data:", formData);
-    return formData;
+    console.log("Validated form data:", validatedData);
+    return validatedData;
   };
 
-  const handleGenerateResume = async (data: FormData | Record<string, any>) => {
+  const handleGenerateResume = async (data: FormData) => {
     console.log("Generate resume called with data:", data);
     setIsGenerating(true);
 
     try {
-      // Convert data if it's from chat mode
-      const resumeData =
-        creationMode === "chat"
-          ? convertChatDataToFormData(data as Record<string, any>)
-          : (data as FormData);
+      // Validate and ensure data structure is complete
+      const resumeData = validateFormData(data);
 
       console.log("Resume data to send:", resumeData);
 
@@ -137,7 +149,6 @@ export default function ResumeCreatePage() {
         body: JSON.stringify({
           data: resumeData,
           mode: creationMode,
-          collectedData: creationMode === "chat" ? data : undefined,
         }),
       });
 
@@ -150,6 +161,7 @@ export default function ResumeCreatePage() {
 
       if (result.success) {
         setGeneratedResume(result);
+        setOriginalStructuredData(resumeData); // Store the original data
         setCurrentView("generated");
       } else {
         throw new Error(result.error || "Unknown error occurred");
@@ -171,6 +183,7 @@ export default function ResumeCreatePage() {
     setCurrentView("mode-select");
     setCreationMode(null);
     setGeneratedResume(null);
+    setOriginalStructuredData(null);
   };
 
   const handleBackToCreation = () => {
@@ -259,6 +272,7 @@ export default function ResumeCreatePage() {
           onBack={handleBackToCreation}
           onEdit={handleEditResume}
           creationMode={creationMode!}
+          structuredData={originalStructuredData}
         />
       ) : (
         <div>Error: No resume data available</div>

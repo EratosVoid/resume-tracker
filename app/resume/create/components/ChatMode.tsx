@@ -9,6 +9,7 @@ import {
   Progress,
   ScrollShadow,
   Avatar,
+  Chip,
 } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -19,6 +20,7 @@ import {
   WandIcon,
   SendIcon,
   AlertTriangleIcon,
+  CheckCircleIcon,
 } from "lucide-react";
 
 interface ChatMessage {
@@ -29,117 +31,87 @@ interface ChatMessage {
   requiresProof?: boolean;
   proofFor?: string;
   isComplete?: boolean;
+  isFollowUp?: boolean;
 }
 
-interface ChatQuestion {
-  id: string;
-  question: string;
-  type: string;
+interface Skill {
+  name: string;
+  proof: string;
+  validated: boolean;
+}
+
+interface WorkExperience {
+  company: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  achievements: string[];
+}
+
+interface Education {
+  school: string;
+  degree: string;
   field: string;
-  options?: string[];
-  requiresProof?: boolean;
+  graduationYear: string;
+  gpa?: string;
+  honors?: string;
+}
+
+interface Project {
+  name: string;
+  description: string;
+  technologies: string[];
+  link?: string;
+  github?: string;
+  achievements: string[];
+}
+
+interface Achievement {
+  title: string;
+  description: string;
+  date: string;
+  proof?: string;
+}
+
+interface FormData {
+  personalInfo: {
+    fullName: string;
+    email: string;
+    phone: string;
+    location: string;
+    linkedin: string;
+    portfolio: string;
+  };
+  targetRole: string;
+  experience: string;
+  skills: Skill[];
+  workExperience: WorkExperience[];
+  education: Education[];
+  projects: Project[];
+  achievements: Achievement[];
 }
 
 interface ChatModeProps {
   onBack: () => void;
-  onGenerateResume: (collectedData: Record<string, any>) => void;
+  onGenerateResume: (collectedData: FormData) => void;
   isGenerating: boolean;
 }
 
-const chatQuestions: ChatQuestion[] = [
-  {
-    id: "greeting",
-    question:
-      "Hi! I'm your AI resume assistant. I'll help you create a compelling resume by asking targeted questions. What's your full name?",
-    type: "text",
-    field: "fullName",
-  },
-  {
-    id: "email",
-    question: "What's your email address?",
-    type: "text",
-    field: "email",
-  },
-  {
-    id: "phone",
-    question: "What's your phone number?",
-    type: "text",
-    field: "phone",
-  },
-  {
-    id: "location",
-    question: "What's your current location (City, State)?",
-    type: "text",
-    field: "location",
-  },
-  {
-    id: "linkedin",
-    question:
-      "What's your LinkedIn profile URL? (Optional - you can skip this)",
-    type: "text",
-    field: "linkedin",
-  },
-  {
-    id: "portfolio",
-    question:
-      "Do you have a portfolio or personal website? (Optional - you can skip this)",
-    type: "text",
-    field: "portfolio",
-  },
-  {
-    id: "role",
-    question:
-      "What specific role are you targeting? (e.g., 'Senior Software Engineer', 'Product Manager', 'Data Scientist')",
-    type: "text",
-    field: "targetRole",
-  },
-  {
-    id: "experience",
-    question:
-      "How many years of professional experience do you have in this field?",
-    type: "select",
-    options: ["0-2 years", "2-5 years", "5-10 years", "10+ years"],
-    field: "experienceLevel",
-  },
-  {
-    id: "skills",
-    question:
-      "List your top 5-7 technical/professional skills separated by commas. (e.g., 'JavaScript, React, Node.js, Python, AWS')",
-    type: "text",
-    field: "skills",
-  },
-  {
-    id: "workExperience",
-    question:
-      "Describe your work experience. Include company names, job titles, dates, and key responsibilities/achievements. Be specific with metrics and impact.",
-    type: "text",
-    field: "workExperience",
-    requiresProof: true,
-  },
-  {
-    id: "education",
-    question:
-      "Tell me about your educational background. Include degrees, institutions, graduation dates, and any relevant coursework or honors.",
-    type: "text",
-    field: "education",
-  },
-  {
-    id: "projects",
-    question:
-      "Describe 2-3 significant projects you've worked on. Include the problem, your solution, technologies used, and measurable results.",
-    type: "text",
-    field: "projects",
-    requiresProof: true,
-  },
-  {
-    id: "achievements",
-    question:
-      "What are your top professional achievements or accomplishments? Include specific numbers, percentages, or other quantifiable results.",
-    type: "text",
-    field: "achievements",
-    requiresProof: true,
-  },
-];
+interface ConversationState {
+  phase:
+    | "personal"
+    | "role"
+    | "skills"
+    | "experience"
+    | "education"
+    | "projects"
+    | "achievements"
+    | "complete";
+  currentSection: string;
+  needsFollowUp: boolean;
+  lastResponse: string;
+}
 
 export default function ChatMode({
   onBack,
@@ -149,8 +121,31 @@ export default function ChatMode({
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState("");
   const [isAiTyping, setIsAiTyping] = useState(false);
-  const [chatStep, setChatStep] = useState(0);
-  const [collectedData, setCollectedData] = useState<Record<string, any>>({});
+  const [conversationState, setConversationState] = useState<ConversationState>(
+    {
+      phase: "personal",
+      currentSection: "fullName",
+      needsFollowUp: false,
+      lastResponse: "",
+    }
+  );
+  const [collectedData, setCollectedData] = useState<FormData>({
+    personalInfo: {
+      fullName: "",
+      email: "",
+      phone: "",
+      location: "",
+      linkedin: "",
+      portfolio: "",
+    },
+    targetRole: "",
+    experience: "",
+    skills: [],
+    workExperience: [],
+    education: [],
+    projects: [],
+    achievements: [],
+  });
   const [proofInputs, setProofInputs] = useState<Record<number, string>>({});
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -167,14 +162,163 @@ export default function ChatMode({
     }
   }, [chatMessages]);
 
+  const getProgressValue = () => {
+    const phases = [
+      "personal",
+      "role",
+      "skills",
+      "experience",
+      "education",
+      "projects",
+      "achievements",
+      "complete",
+    ];
+    const currentPhaseIndex = phases.indexOf(conversationState.phase);
+    return (currentPhaseIndex / (phases.length - 1)) * 100;
+  };
+
   const initializeChat = () => {
     const initialMessage: ChatMessage = {
       id: Date.now(),
       type: "ai" as const,
-      content: chatQuestions[0].question,
+      content:
+        "Hi! I'm Lucy your AI resume assistant. I'll help you create a compelling, ATS-optimized resume through an intelligent conversation. Let's start with the basics - what's your full name?",
       timestamp: new Date(),
     };
     setChatMessages([initialMessage]);
+  };
+
+  const generateNextQuestion = async (
+    userResponse: string,
+    currentPhase: string,
+    currentSection: string
+  ) => {
+    try {
+      // Build full conversation history for context
+      const conversationHistory = chatMessages
+        .map((msg) => `${msg.type.toUpperCase()}: ${msg.content}`)
+        .join("\n");
+
+      const prompt = `You are Lucy, an expert resume consultant conducting an intelligent interview to gather resume information. 
+
+FULL CONVERSATION HISTORY:
+${conversationHistory}
+USER: ${userResponse}
+
+CURRENT STATE:
+- Phase: ${currentPhase}
+- Section: ${currentSection}
+- Collected Data: ${JSON.stringify(collectedData, null, 2)}
+
+PHASES TO COMPLETE (in order):
+1. personal - fullName, email, phone, location, linkedin (optional), portfolio (optional)
+2. role - targetRole and experience level (entry/mid/senior/lead)
+3. skills - technical/professional skills with validation/proof
+4. experience - detailed work experience with company, title, dates, achievements
+5. education - degrees, schools, graduation dates, GPA, honors
+6. projects - project names, descriptions, technologies, links, achievements
+7. achievements - professional accomplishments with dates and proof
+8. complete - all data collected, ready to generate resume
+
+INTELLIGENT RULES:
+- NEVER repeat questions already asked in conversation history
+- NEVER ask for information already provided by the user
+- Analyze the user's response and extract relevant information
+- Ask follow-up questions only if information is incomplete or unclear
+- Move to next logical question based on what's missing
+- For complex sections (experience, projects, achievements), ask if they have more to add
+- Always be encouraging and conversational
+- If user provides multiple pieces of info in one response, acknowledge all and ask for the next missing piece
+- When a phase is complete, smoothly transition to the next phase
+- If you have enough information for a professional resume, suggest generating it
+
+RESPONSE FORMAT:
+Respond with ONLY the next question or statement, nothing else. Be natural and conversational.`;
+
+      const response = await fetch("/api/chat/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: prompt }),
+      });
+
+      if (!response.ok) throw new Error("Failed to get AI response");
+
+      const data = await response.json();
+      return (
+        data.response ||
+        "I'm having trouble connecting to my knowledge base right now. Could you try again in a moment? I want to make sure I give you the best possible guidance for your resume."
+      );
+    } catch (error) {
+      console.error("Error generating question:", error);
+      return "Could you tell me more about that?";
+    }
+  };
+
+  const updateConversationState = async (userResponse: string) => {
+    try {
+      // Use Gemini to determine the next conversation state
+      const statePrompt = `Based on the conversation and user response, determine the next conversation state.
+
+CONVERSATION:
+${chatMessages
+  .map((msg) => `${msg.type.toUpperCase()}: ${msg.content}`)
+  .join("\n")}
+USER: ${userResponse}
+
+CURRENT STATE: ${conversationState.phase} - ${conversationState.currentSection}
+
+PHASES: personal -> role -> skills -> experience -> education -> projects -> achievements -> complete
+
+Analyze what information is still needed and return JSON:
+{
+  "phase": "string (current phase or next phase)",
+  "currentSection": "string (specific field being collected)",
+  "needsFollowUp": boolean,
+  "reasoning": "string (why this state was chosen)"
+}
+
+Return ONLY the JSON object.`;
+
+      const response = await fetch("/api/chat/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: statePrompt }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update state");
+
+      const data = await response.json();
+
+      try {
+        // Clean the response to handle markdown formatting
+        let cleanResponse = data.response.trim();
+
+        // Remove markdown code blocks if present
+        if (cleanResponse.startsWith("```json")) {
+          cleanResponse = cleanResponse
+            .replace(/^```json\s*/, "")
+            .replace(/\s*```$/, "");
+        } else if (cleanResponse.startsWith("```")) {
+          cleanResponse = cleanResponse
+            .replace(/^```\s*/, "")
+            .replace(/\s*```$/, "");
+        }
+
+        const newState = JSON.parse(cleanResponse);
+        setConversationState((prev) => ({
+          ...prev,
+          phase: newState.phase || prev.phase,
+          currentSection: newState.currentSection || prev.currentSection,
+          needsFollowUp: newState.needsFollowUp || false,
+          lastResponse: userResponse,
+        }));
+      } catch (parseError) {
+        console.error("Error parsing state update:", parseError);
+        console.log("Raw state response:", data.response);
+      }
+    } catch (error) {
+      console.error("Error updating conversation state:", error);
+    }
   };
 
   const handleChatSend = async () => {
@@ -190,73 +334,49 @@ export default function ChatMode({
 
     setChatMessages((prev) => [...prev, userMessage]);
 
-    // Process user input
-    const currentQuestion = chatQuestions[chatStep];
-    setCollectedData((prev) => ({
-      ...prev,
-      [currentQuestion.field]: userInput,
-    }));
-
+    const currentResponse = userInput;
     setUserInput("");
     setIsAiTyping(true);
 
-    // Simulate AI processing
-    setTimeout(() => {
-      let aiResponse = "";
-      let nextStep = chatStep + 1;
+    try {
+      // Update conversation state based on context
+      await updateConversationState(currentResponse);
 
-      // Handle proof requirements
-      if (currentQuestion.requiresProof) {
-        aiResponse =
-          "That's impressive! Can you provide some proof or validation for this achievement? This could be:\n\n• A link to the project/results\n• Screenshots or documentation\n• LinkedIn recommendations\n• Performance reviews\n• GitHub repository\n\nThis helps make your resume more credible.";
+      // Generate next question using full conversation context
+      const nextQuestion = await generateNextQuestion(
+        currentResponse,
+        conversationState.phase,
+        conversationState.currentSection
+      );
 
-        // Add proof collection step
+      // Determine if conversation is complete
+      const isComplete =
+        nextQuestion.toLowerCase().includes("generate") ||
+        nextQuestion.toLowerCase().includes("complete") ||
+        nextQuestion.toLowerCase().includes("ready") ||
+        conversationState.phase === "complete";
+
+      setTimeout(() => {
         setChatMessages((prev) => [
           ...prev,
           {
             id: Date.now() + 1,
             type: "ai" as const,
-            content: aiResponse,
+            content: nextQuestion,
             timestamp: new Date(),
-            requiresProof: true,
-            proofFor: currentQuestion.field,
+            isComplete: isComplete,
           },
         ]);
-      } else if (nextStep < chatQuestions.length) {
-        // Move to next question
-        aiResponse = chatQuestions[nextStep].question;
-        setChatStep(nextStep);
 
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            type: "ai" as const,
-            content: aiResponse,
-            timestamp: new Date(),
-          },
-        ]);
-      } else {
-        // Finished all questions
-        aiResponse =
-          "Perfect! I have all the information needed. Let me generate your AI-powered resume with validated achievements and proof-backed claims.";
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            type: "ai" as const,
-            content: aiResponse,
-            timestamp: new Date(),
-            isComplete: true,
-          },
-        ]);
-      }
-
+        setIsAiTyping(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error in chat:", error);
       setIsAiTyping(false);
-    }, 1500);
+    }
   };
 
-  const handleProofSubmission = (
+  const handleProofSubmission = async (
     messageId: number,
     field: string | undefined
   ) => {
@@ -273,53 +393,149 @@ export default function ChatMode({
 
     setChatMessages((prev) => [...prev, userMessage]);
 
-    // Store the proof data
-    setCollectedData((prev) => ({
-      ...prev,
-      [`${field}_proof`]: proofValue,
-    }));
-
     // Clear the proof input for this message
     setProofInputs((prev) => ({
       ...prev,
       [messageId]: "",
     }));
 
-    // Continue with next question
-    const nextStep = chatStep + 1;
-    if (nextStep < chatQuestions.length) {
-      setChatStep(nextStep);
+    setIsAiTyping(true);
+
+    try {
+      // Generate follow-up question using Gemini
+      const nextQuestion = await generateNextQuestion(
+        `Proof: ${proofValue}`,
+        conversationState.phase,
+        conversationState.currentSection
+      );
+
+      const isComplete =
+        nextQuestion.toLowerCase().includes("generate") ||
+        nextQuestion.toLowerCase().includes("complete");
 
       setTimeout(() => {
-        const aiResponse = chatQuestions[nextStep].question;
         setChatMessages((prev) => [
           ...prev,
           {
             id: Date.now() + 1,
             type: "ai" as const,
-            content: aiResponse,
+            content: nextQuestion,
             timestamp: new Date(),
+            isComplete: isComplete,
           },
         ]);
+        setIsAiTyping(false);
       }, 500);
-    } else {
-      // All questions completed
-      setTimeout(() => {
-        const completionMessage: ChatMessage = {
-          id: Date.now() + 1,
-          type: "ai" as const,
-          content:
-            "Perfect! I have all the information needed. Let me generate your AI-powered resume with validated achievements and proof-backed claims.",
-          timestamp: new Date(),
-          isComplete: true,
-        };
-        setChatMessages((prev) => [...prev, completionMessage]);
-      }, 500);
+    } catch (error) {
+      console.error("Error handling proof:", error);
+      setIsAiTyping(false);
     }
   };
 
-  const handleGenerateClick = () => {
-    onGenerateResume(collectedData);
+  const extractAllDataFromConversation = async (): Promise<FormData> => {
+    const fullConversation = chatMessages
+      .map((msg) => `${msg.type.toUpperCase()}: ${msg.content}`)
+      .join("\n");
+
+    const extractionPrompt = `You are a resume data extraction expert. Analyze this complete conversation and extract ALL resume information into a structured format.
+
+FULL CONVERSATION:
+${fullConversation}
+
+Extract and organize ALL information mentioned in the conversation into this exact JSON structure:
+
+{
+  "personalInfo": {
+    "fullName": "string",
+    "email": "string", 
+    "phone": "string",
+    "location": "string",
+    "linkedin": "string",
+    "portfolio": "string"
+  },
+  "targetRole": "string",
+  "experience": "string (entry/mid/senior/lead)",
+  "skills": [{"name": "string", "proof": "string", "validated": true}],
+  "workExperience": [{"company": "string", "title": "string", "startDate": "string", "endDate": "string", "description": "string", "achievements": ["string"]}],
+  "education": [{"school": "string", "degree": "string", "field": "string", "graduationYear": "string", "gpa": "string", "honors": "string"}],
+  "projects": [{"name": "string", "description": "string", "technologies": ["string"], "link": "string", "github": "string", "achievements": ["string"]}],
+  "achievements": [{"title": "string", "description": "string", "date": "string", "proof": "string"}]
+}
+
+EXTRACTION RULES:
+- Extract ALL information mentioned throughout the conversation
+- For skills, include any technologies, programming languages, tools mentioned
+- For work experience, include all jobs, internships, roles discussed
+- For education, include degrees, certifications, courses mentioned
+- For projects, include any personal/professional projects described
+- For achievements, include awards, recognitions, accomplishments mentioned
+- Use empty strings for missing required fields, empty arrays for missing arrays
+- Be thorough - don't miss any details from the conversation
+- If dates are mentioned as "current" or "present", use "Present"
+- If specific dates aren't given, make reasonable estimates based on context
+
+CRITICAL: Return ONLY the raw JSON object without any markdown formatting, code blocks, or additional text. Do not wrap in \`\`\`json or any other formatting.`;
+
+    try {
+      const response = await fetch("/api/chat/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: extractionPrompt }),
+      });
+
+      if (!response.ok) throw new Error("Failed to extract data");
+
+      const data = await response.json();
+
+      // Clean the response to handle markdown formatting
+      let cleanResponse = data.response.trim();
+
+      // Remove markdown code blocks if present
+      if (cleanResponse.startsWith("```json")) {
+        cleanResponse = cleanResponse
+          .replace(/^```json\s*/, "")
+          .replace(/\s*```$/, "");
+      } else if (cleanResponse.startsWith("```")) {
+        cleanResponse = cleanResponse
+          .replace(/^```\s*/, "")
+          .replace(/\s*```$/, "");
+      }
+
+      const extractedData = JSON.parse(cleanResponse);
+      console.log("Final extracted data:", extractedData);
+
+      return extractedData;
+    } catch (error) {
+      console.error("Error extracting final data:", error);
+      // Return empty structure if extraction fails
+      return {
+        personalInfo: {
+          fullName: "",
+          email: "",
+          phone: "",
+          location: "",
+          linkedin: "",
+          portfolio: "",
+        },
+        targetRole: "",
+        experience: "",
+        skills: [],
+        workExperience: [],
+        education: [],
+        projects: [],
+        achievements: [],
+      };
+    }
+  };
+
+  const handleGenerateClick = async () => {
+    try {
+      // Extract all data from the conversation at once
+      const finalData = await extractAllDataFromConversation();
+      onGenerateResume(finalData);
+    } catch (error) {
+      console.error("Error generating resume:", error);
+    }
   };
 
   return (
@@ -347,18 +563,59 @@ export default function ChatMode({
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
             <Progress
               value={
                 chatMessages.some((msg) => msg.isComplete)
                   ? 100
-                  : (chatStep / chatQuestions.length) * 100
+                  : getProgressValue()
               }
               color="primary"
               className="max-w-md"
               showValueLabel={true}
               label="Progress"
             />
+
+            {/* Conversation Progress Status */}
+            <div className="flex flex-wrap gap-2 items-center">
+              {/* Current phase indicator */}
+              <Chip
+                size="sm"
+                color="primary"
+                variant="flat"
+                startContent={<MessageCircleIcon className="h-3 w-3" />}
+              >
+                {conversationState.phase === "personal" &&
+                  "Collecting Personal Info"}
+                {conversationState.phase === "role" && "Discussing Target Role"}
+                {conversationState.phase === "skills" && "Exploring Skills"}
+                {conversationState.phase === "experience" && "Work Experience"}
+                {conversationState.phase === "education" &&
+                  "Education Background"}
+                {conversationState.phase === "projects" &&
+                  "Projects & Portfolio"}
+                {conversationState.phase === "achievements" &&
+                  "Achievements & Awards"}
+                {conversationState.phase === "complete" && "Ready to Generate"}
+              </Chip>
+
+              {/* Messages count */}
+              <Chip size="sm" color="default" variant="bordered">
+                {chatMessages.length} messages
+              </Chip>
+
+              {/* Completion indicator */}
+              {chatMessages.some((msg) => msg.isComplete) && (
+                <Chip
+                  size="sm"
+                  color="success"
+                  variant="dot"
+                  startContent={<CheckCircleIcon className="h-3 w-3" />}
+                >
+                  Ready to Generate
+                </Chip>
+              )}
+            </div>
           </div>
         </div>
       </div>
