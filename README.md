@@ -801,7 +801,10 @@ Bug Report: Use the bug report template
 Feature Request: Use the feature request template
 Security Issue: Report privately via email
 
-📄 License
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 This project is licensed under the MIT License - see the LICENSE file for details.
 MIT License
 
@@ -814,3 +817,111 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+
+
+## 📞 Support
+
+- **Documentation**: Check the inline code comments and this README
+- **Issues**: Report bugs via [GitHub Issues](https://github.com/EratosVoid/resume-tracker/issues)
+- **Discussions**: Use [GitHub Discussions](https://github.com/EratosVoid/resume-tracker/discussions) for questions and feature requests
+- **Email**: Contact the maintainer at [your-email@example.com]
+
+## 🔮 Roadmap
+
+### Near Term (v1.1)
+- [ ] Advanced analytics dashboard with charts and metrics
+- [ ] Email notifications for new applications
+- [ ] Bulk candidate operations (approve/reject multiple)
+- [ ] Export applications to CSV/Excel
+
+### Medium Term (v1.2)
+- [ ] Resume template builder for candidates
+- [ ] Interview scheduling integration
+- [ ] Candidate communication system
+- [ ] Mobile app (React Native)
+
+### Long Term (v2.0)
+- [ ] Advanced search with Elasticsearch
+- [ ] Multi-language support (i18n)
+- [ ] Video interview integration
+- [ ] Advanced AI insights and predictions
+- [ ] Multi-tenant architecture for agencies
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. **Fork** the repository
+2. **Clone** your fork locally
+   ```bash
+   git clone https://github.com/your-username/resume-tracker.git
+   ```
+3. **Create** a feature branch
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+4. **Make** your changes and commit
+   ```bash
+   git commit -m 'Add: amazing new feature'
+   ```
+5. **Push** to your branch
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+6. **Open** a Pull Request
+
+### Development Guidelines
+
+- Follow the existing code style and conventions
+- Add tests for new features
+- Update documentation for any API changes
+- Ensure all tests pass before submitting PR
+- Use conventional commit messages
+
+## 📊 Stats
+
+![GitHub stars](https://img.shields.io/github/stars/EratosVoid/resume-tracker?style=social)
+![GitHub forks](https://img.shields.io/github/forks/EratosVoid/resume-tracker?style=social)
+![GitHub issues](https://img.shields.io/github/issues/EratosVoid/resume-tracker)
+![GitHub license](https://img.shields.io/github/license/EratosVoid/resume-tracker)
+
+## 🙏 Acknowledgments
+
+- **Next.js Team** - For the amazing React framework
+- **HeroUI** - For the beautiful UI components
+- **Google Gemini** - For powerful AI capabilities
+- **Vercel** - For seamless deployment platform
+- **MongoDB** - For reliable database solutions
+- **UploadThing** - For file upload infrastructure
+
+## 📝 Changelog
+
+### v1.0.0 (Current)
+- ✅ Initial release with core ATS functionality
+- ✅ Google Gemini AI integration
+- ✅ Public/private job postings
+- ✅ Resume upload and analysis
+- ✅ HR dashboard with candidate management
+- ✅ Real-time scoring and feedback
+
+---
+
+<div align="center">
+  <p>Built with ❤️ using Next.js, HeroUI, and Google Gemini AI</p>
+  <p>
+    <a href="https://nextjs.org">
+      <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+    </a>
+    <a href="https://www.typescriptlang.org">
+      <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+    </a>
+    <a href="https://www.mongodb.com">
+      <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+    </a>
+    <a href="https://tailwindcss.com">
+      <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+    </a>
+  </p>
+  
+  <p>⭐ Star this repo if you find it helpful!</p>
+</div>
