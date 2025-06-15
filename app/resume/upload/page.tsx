@@ -33,6 +33,8 @@ interface AnalysisResult {
     content: { score: number; feedback: string };
     keywords: { score: number; feedback: string };
     atsCompatibility: { score: number; feedback: string };
+    experience: { score: number; feedback: string };
+    education: { score: number; feedback: string };
   };
   extractedInfo: {
     name: string;
