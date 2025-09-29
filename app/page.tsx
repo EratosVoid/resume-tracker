@@ -964,8 +964,8 @@ export default function HomePage() {
                       Ankita Ambastha
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-2">
-                      First Class IT Graduate specializing in Python Automation
-                      and AI
+                      Specialist in Python, AI and Automations & Music
+                      Enthusiast
                     </p>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">
                       ankitaambastha3005@gmail.com
