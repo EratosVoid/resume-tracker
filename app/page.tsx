@@ -965,7 +965,7 @@ export default function HomePage() {
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-2">
                       First Class IT Graduate specializing in Python Automation
-                      and AI & Music Enthusiast
+                      and AI
                     </p>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">
                       ankitaambastha3005@gmail.com
