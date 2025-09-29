@@ -856,7 +856,8 @@ export default function HomePage() {
               About Us
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Built with passion during a hackathon by three dedicated developers
+              Built with passion during a hackathon by three dedicated
+              developers
             </p>
           </motion.div>
 
@@ -873,7 +874,7 @@ export default function HomePage() {
               <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg overflow-hidden">
                 <CardBody className="text-center p-8 relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  
+
                   <div className="relative">
                     <div className="p-4 bg-gradient-to-br from-primary to-secondary rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                       <UserIcon className="h-10 w-10 text-white" />
@@ -882,7 +883,8 @@ export default function HomePage() {
                       Aneesh M Bhat
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-2">
-                      Founder of DevVoid & Co-Founder of AutomotiveAI, TetherAI & Koddera
+                      Founder of DevVoid & Co-Founder of AutomotiveAI, TetherAI
+                      & Koddera
                     </p>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">
                       aneeshbhat3719@gmail.com
@@ -914,7 +916,7 @@ export default function HomePage() {
               <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg overflow-hidden">
                 <CardBody className="text-center p-8 relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  
+
                   <div className="relative">
                     <div className="p-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                       <UserIcon className="h-10 w-10 text-white" />
@@ -953,7 +955,7 @@ export default function HomePage() {
               <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg overflow-hidden">
                 <CardBody className="text-center p-8 relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  
+
                   <div className="relative">
                     <div className="p-4 bg-gradient-to-br from-secondary to-orange-600 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                       <UserIcon className="h-10 w-10 text-white" />
@@ -962,7 +964,8 @@ export default function HomePage() {
                       Ankita Ambastha
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-2">
-                      Python and AI Developer & Passionate music enthusiast
+                      First Class IT Graduate specializing in Python Automation
+                      and AI & Music Enthusiast
                     </p>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">
                       ankitaambastha3005@gmail.com
