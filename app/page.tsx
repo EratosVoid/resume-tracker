@@ -842,6 +842,147 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* About Us Section */}
+      <section className="py-24 px-4 bg-gradient-to-br from-white via-gray-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-primary to-secondary dark:from-white dark:via-primary dark:to-secondary bg-clip-text text-transparent">
+              About Us
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Built with passion during a hackathon by three dedicated developers
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Aneesh M Bhat */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg overflow-hidden">
+                <CardBody className="text-center p-8 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="relative">
+                    <div className="p-4 bg-gradient-to-br from-primary to-secondary rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                      <UserIcon className="h-10 w-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                      Aneesh M Bhat
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-2">
+                      Founder of DevVoid & Co-Founder of AutomotiveAI, TetherAI & Koddera
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      aneeshbhat3719@gmail.com
+                    </p>
+                    <div className="mt-4">
+                      <a
+                        href="https://devvoid.org"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors duration-300"
+                      >
+                        Know More <ArrowRightIcon className="h-4 w-4 ml-1" />
+                      </a>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+
+            {/* Aditya Raj */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg overflow-hidden">
+                <CardBody className="text-center p-8 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="relative">
+                    <div className="p-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                      <UserIcon className="h-10 w-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                      Aditya Raj
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-2">
+                      GenAI CoE at Deloitte USI & Huge wildlife enthusiast
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      addyrog2@gmail.com
+                    </p>
+                    <div className="mt-4">
+                      <a
+                        href="mailto:addyrog2@gmail.com"
+                        className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors duration-300"
+                      >
+                        Know More <ArrowRightIcon className="h-4 w-4 ml-1" />
+                      </a>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+
+            {/* Ankita Ambastha */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg overflow-hidden">
+                <CardBody className="text-center p-8 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="relative">
+                    <div className="p-4 bg-gradient-to-br from-secondary to-orange-600 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                      <UserIcon className="h-10 w-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                      Ankita Ambastha
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-2">
+                      Python and AI Developer & Passionate music enthusiast
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      ankitaambastha3005@gmail.com
+                    </p>
+                    <div className="mt-4">
+                      <a
+                        href="mailto:ankitaambastha3005@gmail.com"
+                        className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors duration-300"
+                      >
+                        Know More <ArrowRightIcon className="h-4 w-4 ml-1" />
+                      </a>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Enhanced Final CTA Section */}
       <section className="relative py-24 px-4 overflow-hidden">
         {/* Animated gradient background */}
